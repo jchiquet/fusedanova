@@ -3,7 +3,7 @@ Type: Package
 Title: Fused-ANOVA
 Version: 0.1-1
 Date: 2017-12-01
-Author: Pierre Gutierrez, Julien Chiquet, Guillem Rigaill
+Author: Pierre Gutierrez, Julien Chiquet, Guillem Rigaill, Valentin Dervieux
 Maintainer: Julien Chiquet <julien.chiquet@inra.fr>
 Description: Fused-ANOVA is a penalized method that solves
     the one-way ANOVA problem by collapsing the coefficients of K conditions.

@@ -60,8 +60,8 @@ setClass("fusedanova",
 		prediction = "list",
 		lambdalist = "vector",
 		algorithm = "character",
-                weights    = "character"
-    )
+    weights    = "character"
+  )
 )
 
 setMethod("print", "fusedanova", definition =

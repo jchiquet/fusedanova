@@ -1,7 +1,7 @@
 .onAttach <- function(...) {
   welcome <- paste(""                                              ,
                    "----------------------------------------------",
-                   "  'FusedANOVA' package version 0.1-0           ",
+                   "  'FusedANOVA' package version 0.1-1           ",
                    ""                                              ,
                    " Still under development... feedback welcome  ",
                    "----------------------------------------------",

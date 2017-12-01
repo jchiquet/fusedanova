@@ -43,14 +43,11 @@
 ##' \item{\code{2} : }{Forces the algorithm to take the splits into account even if
 ##' the solution paths contains no split.}
 ##' }
-##' Note : For the moment, only the no split algorithm has been coded. Please ensure that
-##' your weights choice leads to the no split algorithm or set \code{split} to \code{1}.
 ##' }
-##'
-##'	\item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations.
+##' 
+##' \item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations.
 ##' By default, \eqn{10^-10}{eps}.
-##' Note : this is currently not used.}
-##'
+##' 
 ##' \item{\code{checkargs}: }{logical; should arguments be checked to
 ##' (hopefully) avoid internal crashes? Default is \code{TRUE}.
 ##' Automatically set to \code{FALSE} when a call is made
@@ -62,8 +59,7 @@
 ##' have a not null attribute \code{prediction}.
 ##' }
 ##'
-##' \item{\code{mc.cores}: } {integer; the number of cores to use. The default uses all
-##' the cores available. }
+##' \item{\code{mc.cores}: } {integer; the number of cores to use. The default uses a single core.}
 ##'
 ##' \item{\code{verbose}: } {boolean; should the code print out its progress.
 ##' By default, FALSE. }
@@ -117,22 +113,19 @@
 ##' }
 ##'
 ##' @export
-fusedanova <- function(x, class,...) {
-  
+fusedanova <- function(x, class = NULL, ...) {
+
   ## ===================================================
   ## GETTING DEFAULT PARAMS
   user <- list(...)
   defs <- default.args.fa()
   args <- modifyList(defs, user)
-  
+
   ## ===================================================
   ## CHECKS TO (PARTIALLY) AVOID CRASHES OF THE C++ CODE
-  if(!is.matrix(x))
-    x <- as.matrix(x)
-  p <- ncol(x) # problem size
-  n <- nrow(x) # sample size
-  if (missing(class))
-    class <- factor(1:n)
+  if(!is.matrix(x)) x <- as.matrix(x)
+  n <- nrow(x); p <- ncol(x) # problem size
+  if (is.null(class)) class <- factor(1:n)
   
   if (args$checkargs) {
     if(any(is.na(x)))
@@ -161,19 +154,20 @@ fusedanova <- function(x, class,...) {
   
   ## ======================================================
   ## NORMALIZATION TREATMENT
-  if (args$standardize==TRUE){x=lapply(x,function(z){normalize(z,class)})} # centrer réduire
+  if (args$standardize == TRUE)
+    x <- lapply(x,function(z){normalize(z,class)})
   
   ## ====================================================
   ## SPLIT OCCURENCE TESTING AND LAUNCH
   if (args$splits==0){ # if we let the programm choose, overwrite the value
-    if (args$weights=="default"||(args$weights %in% c("laplace","gaussian","adaptive") && args$gamma>=0) ||length(unique(class))<3){
+    if (args$weights == "default" || (args$weights %in% c("laplace","gaussian","adaptive") && args$gamma >= 0) || length(unique(class)) < 3){
       args$splits <- 1
-    }else{
+    } else{
       args$split <- 2
     }
   }
   
-  if (args$split==1){
+  if (args$split == 1){
     algoType <- "No Split"
     if(args$verbose){cat("\nPath calculated without split")}
   } else {
@@ -181,27 +175,25 @@ fusedanova <- function(x, class,...) {
     if(args$verbose){cat("\nPath calculated with possible splits")}
   }
 
-  if (p > 1) {
-    result <- mclapply(x,function(z) {calculatepath(z,class,args)},
-                       mc.cores= args$mc.cores, mc.preschedule=ifelse(p > 100,TRUE,FALSE)) # path algorithm
-  } else {
-    result <- list(calculatepath(x[[1]],class,args))
-  }
+  # res <- mclapply(x, calculatepath, class, args, mc.cores= args$mc.cores, mc.preschedule=ifelse(p > 100,TRUE,FALSE))
+
+  # res <- mclapply(x, calculatepath, class, args, mc.cores= args$mc.cores, mc.preschedule=ifelse(p > 100,TRUE,FALSE))
+
+  res <- list(calculatepath(x[[1]],class,args))  
   
   if (length(args$lambdalist) == 0){ # default parameter
     l <- numeric(0)
     prediction =  list()
   } else{
     l <- args$lambdalist
-    prediction <- lapply(result, function(z){list(table=z$prediction, order = z$order)})
+    prediction <- lapply(res, function(z){list(table=z$prediction, order = z$order)})
   }
-  
-  result <- lapply(result, function(z){list(table=z$table, order = z$order)})
+  res <- lapply(res, function(z){list(table=z$table, order = z$order)})
   ## small warning on last beta
-  if (args$standardize==TRUE && abs(result[[1]]$table[1,1])>10^(-8)){
+  if (args$standardize==TRUE && abs(res[[1]]$table[1,1])>10^(-8)){
     warning("There may be some approximation errors (Beta(lambda_max) far from 0). You may want to lower the gamma if you are using one.")}
   
-  return(new("fusedanova",result=result, prediction=prediction, classes = class, weights=args$weights, lambdalist=l,algorithm=algoType))
+  return(new("fusedanova",result=res, prediction=prediction, classes = class, weights=args$weights, lambdalist=l,algorithm=algoType))
   
 }
 
@@ -212,7 +204,7 @@ fusedanova <- function(x, class,...) {
 # calculate the path for one gene
 # x the vector of data, group the vector group belonging, args all the rest
 calculatepath <- function(x, group, args){
-  
+
   ngroup <- tabulate(group)# vector of number by group
   xm <- rowsum(x,group)/ngroup
   xv <- rep(0,length(xm))
@@ -225,7 +217,6 @@ calculatepath <- function(x, group, args){
   xm <- xm[ordre] # sort from the smallest beta to the highest
   ngroup <- ngroup[ordre]
   xv <- xv[ordre]
-  
   if (args$splits==1){
     res  <- .Call("noSplit",R_x=xm,R_xv=xv,R_ngroup=ngroup, R_args=args, PACKAGE="fusedanova")
   }else{
@@ -240,42 +231,44 @@ calculatepath <- function(x, group, args){
 # normalization of a vector
 #############################
 normalize <- function(x,group){
-  Pooled = (nlevels(group)!= length(x))
-  if (Pooled == FALSE){
-    res = (x-mean(x))/as.numeric((sqrt(var(x))))
+  ## if Pooled 
+  if (nlevels(group) == length(x)) {
+    s <- sd(x)
   } else {
     n <- length(x)
-    m <- mean(x)
     ngroup <- tabulate(group)
     s <- 1/(ngroup-1)*(rowsum(x^2,group) - (1/ngroup)*(rowsum(x,group))^2)
-    s[which(ngroup==1)] <- 0
+    s[which(ngroup == 1)] <- 0
     if (sum(s)==0){
-      res <- (x-mean(x))/as.numeric((sqrt(var(x))))
+      s <- sd(x)
     } else{
       s <- sqrt(sum(s*(ngroup-1))/(n-length(ngroup)))
-      res <- (x-m)/s
     }
   }
-  return(res)
+  res <- (x - mean(x))/s
+  res
 }
 
 #############################
 # default args
 #############################
 default.args.fa <- function() {
-  return(list(
-           weights = "default",
-           W = matrix(nrow=0, ncol=0),
-           gamma = 0 ,
-           standardize =TRUE,
-           splits = 0,
-           epsilon =10^-10,
-           checkargs = TRUE,
-           lambdalist = numeric(0),
-           mc.cores = detectCores(),
-           verbose = FALSE,
-           mxSplitSize = 100
-           ))
+  args <- 
+    list(
+      W           = matrix(nrow = 0, ncol = 0),
+      weights     = "default",
+      gamma       = 0 ,
+      standardize = TRUE,
+      splits      = 0,
+      checkargs   = TRUE,
+      lambdalist  = numeric(0),
+      mc.cores    = 1,
+      verbose     = FALSE,
+      mxSplitSize = 100,
+      epsilon     = 1e-10
+      
+    )
+  args
 }
 
 ## constant list of treated weights
