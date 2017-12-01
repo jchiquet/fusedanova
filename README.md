@@ -1,0 +1,119 @@
+
+
+# Fused-ANOVA: a package to fit weighted fusion poenalties at large scale
+
+_This README is preliminary, more to come soon, simultaneously with a fresh-up of the package..._
+
+## Description
+
+Fused-ANOVA is a penalized method that solves the one-way ANOVA problem by collapsing the coefficients of K conditions. It reconstructs a balanced tree structure between the condition with a homotopy algorithm.
+
+For a large class of weights implemented here, our homotopy algorithm is in $\mathcal{O}(K log(K))$.  These weights induce a balanced tree structure and simplify the interpretation of the results. The package contains an illustrating phenotypic data set:
+ given a trait, we reconstruct a balanced tree structure and assess  its agreement with the known phylogeny.
+
+### Problem solved:
+
+The optimization problem solved by fused-ANOVA is 
+\[
+  \hat{\beta}_{\lambda} = \arg \min_{\beta} \left\{\sum_{k=1}^K \sum_{i=1}^{n_k} \left(Y_{ik}-\beta_k \right)^2
+ + \lambda \sum_{k,\ell} w_{kl} \left|\beta_k - \beta_\ell \right|\right\}}}
+\]
+where $Y_{ik}}{Y_ik}$ is the intensity of a continuous random variable for sample $i$ in condition $k$ and $\beta_k$ is the mean parameter of condition $k$. We denote by $k$ the total number of conditions and $n_k$ the number of sample in each condition.
+
+### Choice of weights and performance of the algorithm:
+
+For various weights in the fused-penalty (entailing "laplace", "gaussian", "default", "adaptive" - see the corresponding documentation), the homotopy algorithm produces a path that contains no split, which is highly desirable since in this case
+  - the order of the \eqn{\beta_k}{beta_k} always matches the order of the empirical mean of each condition;
+  - the recovered structure is a tree which simplifies the interpretation;
+  - the total number of iterations is guaranteed to be small and equal to \eqn{K}{K};
+  - we avoid maximum flow problems whose resolution is  computationally demanding.
+
+The associated algorithm is in $\mathcal{O}(K\log(K))}{O(klog(K))$. In this perspective, we extend the work of Hocking et al. to a larger class of weights.
+
+For other weights, split can occur along the path of solution. We adapted the algorithm developed by Hoefling (reference below) to the fused-ANOVA problem.
+
+### Efficient cross-validation procedure:
+
+We provide a fast cross validation (CV) procedure to select $\lambda$ for both the general and the no split algorithms.  The idea behind this procedure is to take advantage of the DAG structure of the path of solutions along $\lambda$. Rather than computing the CV error for each condition separately, we traverse each edge of the DAG once and only once and compute simultaneously the error of all conditions going through this edge.  If we consider a perfectly balanced tree and a grid of $P$ values of
+$\lambda we achieve $\mathcal{O}(P \log (P))$ rather than a $\mathcal{O}(P^2)$ complexity.
+
+### Technical remarks:
+
+Most of the numerical work is done in \code{C++}, relying on the **Rcpp** package. We also use the multi-core capability of the computer through the **parallel** package when multiple variables are to be classified. This feature is not available for Windows user, though.
+
+### references
+
+Chiquet J, Gutierrez P, Rigaill G: _Fast tree inference with weighted fusion penalties_, **Journal of Computational and Graphical Statistics** 205–216, 2017. [PDF version](http://www.tandfonline.com/doi/abs/10.1080/10618600.2015.1096789?journalCode=ucgs20)
+
+T. Hocking, J.-P. Vert, F. Bach, and A. Joulin. _Clusterpath: an Algorithm for Clustering using Convex Fusion Penalties_, ICML, 2011.
+
+## Installation
+
+
+```r
+devtools::install_github("jchiquet/fusedanova").
+```
+
+## Example: reconstruciton of bird phylogeny from their weights
+
+This **aves** data set gives the birth weight of for 40 bird families classified in 15 orders and regrouping a total of 184 individuals. It comes from [An Age: The Animal Ageing and Longevity Database](http://genomics.senescence.info/species/).
+
+The corresponding data frame contains 184 rows with three columns: "weight" (the weight in grammes), "family" (a factor with 40 levels) and "order" (a factor with 15 levels):
+
+```r
+library(fusedanova)
+data(aves)
+head(aves)
+```
+
+```
+##   weight     order       family
+## 1  110.6 Accipitri Accipitridae
+## 2   39.4 Accipitri Accipitridae
+## 3   23.8 Accipitri Accipitridae
+## 4   29.3 Accipitri Accipitridae
+## 5   60.0 Accipitri  Cathartidae
+## 6   70.0 Accipitri  Cathartidae
+```
+
+We try a couple of weights among the availble ones. Only "laplace" as a very low complexity.
+
+
+```r
+fa.laplace <- fusedanova(x=aves$weight, class=aves$family, weights="laplace", gamma=5)
+plot(fa.laplace, labels=aves$order)
+```
+
+![plot of chunk aves-laplace](figure/aves-laplace-1.png)
+
+Gaussian weights corresponds to the $\ell_2$-clusterpath: they provide a nice interpretation but do not guarante absence of split and low complexity.
+
+
+```r
+fa.gaussian <- fusedanova(x=aves$weight, class=aves$family, weights="gaussian")
+plot(fa.gaussian, labels=aves$order)
+```
+
+![plot of chunk aves-gaussian](figure/aves-gaussian-1.png)
+
+Using weight mimicing t-test, we do note guarantee absence of split in the path
+
+
+```r
+fa.ttest <- fusedanova(x=aves$weight, class=aves$family, weights="naivettest")
+plot(fa.ttest, labels=aves$order)
+```
+
+![plot of chunk aves-ttest](figure/aves-ttest-1.png)
+
+The adaptive-weigths correspond to the Cas-ANOVA approach by BOndel and Reich, that do not enjoy a low computational complexity.
+
+
+```r
+fa.ada <- fusedanova(x=aves$weight, class=aves$family, weights="adaptive", gamma=2)
+plot(fa.ada, labels=aves$order)
+```
+
+![plot of chunk aves-ada](figure/aves-ada-1.png)
+
+
