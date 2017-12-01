@@ -14,7 +14,6 @@
 ##' @param ... list of additional parameters to overwrite the defaults of the
 ##' fitting procedure. Include :
 ##' \itemize{%
-##'
 ##' \item{\code{weights}: } {character; which type of weights is
 ##' supposed to be used.  The supported weights are :
 ##' \code{"default"}, \code{"laplace"}, \code{"gaussian"},
@@ -46,7 +45,7 @@
 ##' }
 ##' 
 ##' \item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations.
-##' By default, \eqn{10^-10}{eps}.
+##' By default, \eqn{10^-10}{eps}.}
 ##' 
 ##' \item{\code{checkargs}: }{logical; should arguments be checked to
 ##' (hopefully) avoid internal crashes? Default is \code{TRUE}.
@@ -113,97 +112,50 @@
 ##' }
 ##'
 ##' @export
-fusedanova <- function(x, class = NULL, ...) {
-
-  ## ===================================================
-  ## GETTING DEFAULT PARAMS
-  user <- list(...)
-  defs <- default.args.fa()
-  args <- modifyList(defs, user)
-
-  ## ===================================================
-  ## CHECKS TO (PARTIALLY) AVOID CRASHES OF THE C++ CODE
-  if(!is.matrix(x)) x <- as.matrix(x)
-  n <- nrow(x); p <- ncol(x) # problem size
-  if (is.null(class)) class <- factor(1:n)
+fusedanova <- function(x, class = factor(1:nrow(x)), weights = "default", standardize = TRUE, ...) {
   
+  ## overwrite default parametrs with user's
+  args <- fusedANOVA_args(weights, standardize, list(...))
+  if (!is.data.frame(x)) x <- as.data.frame(x)
+  
+  ## check to partilly avoid crashes of th C++ code
   if (args$checkargs) {
-    if(any(is.na(x)))
-      stop("NA value in x not allowed.")
-    if(n != length(class))
-      stop("x and y have not correct dimensions")
-    if(length(unique(class))==1)
-      stop("y has only one level.")
-    if(!(args$weights %in% possibleWeights))
-      stop("Unknown weight parameter formulation. Aborting.")
+    stopif(any(is.na(x))                  , "NA value in x not allowed.")
+    stopif(nrow(x) != length(class)       , "data and class dimensions do not match")
+    stopif(length(unique(class)) == 1     , "y has only one level.")
+    stopif(!(weights %in% possibleWeights), "Unknown weight parameter formulation. Aborting.")
     if (Sys.info()[['sysname']] == "Windows") {
-      if(args$verbose){
-        warning("\nWindows does not support fork, enforcing mc.cores to '1'.")
-      }
+      warning("\nWindows does not support fork, enforcing mc.cores to '1'.")
       args$mc.cores <- 1
     }
-    if (length(args$lambdalist)!=0){ # sort by descending for effective prediction
-      args$lambdalist = sort(args$lambdalist, decreasing = TRUE)
-    }    
   }
   
-  ## ====================================================
-  ## CONVERSIONS OF x in a list
-  x <- split(x, rep(1:p, each = n))
-  if (!is.factor(class)){class <- as.factor(class)}
+  # conversion of class ot a factor
+  if (!is.factor(class)) class <- as.factor(class)
   
-  ## ======================================================
-  ## NORMALIZATION TREATMENT
-  if (args$standardize == TRUE)
-    x <- lapply(x,function(z){normalize(z,class)})
+  # normalization 
+  if (standardize) x <- lapply(x, normalize, class)
   
-  ## ====================================================
-  ## SPLIT OCCURENCE TESTING AND LAUNCH
-  if (args$splits==0){ # if we let the programm choose, overwrite the value
-    if (args$weights == "default" || (args$weights %in% c("laplace","gaussian","adaptive") && args$gamma >= 0) || length(unique(class)) < 3){
-      args$splits <- 1
-    } else{
-      args$split <- 2
-    }
-  }
-  
-  if (args$split == 1){
-    algoType <- "No Split"
-    if(args$verbose){cat("\nPath calculated without split")}
-  } else {
-    algoType <- "With possible Splits"
-    if(args$verbose){cat("\nPath calculated with possible splits")}
-  }
+  res <- mclapply(x, calculatepath, class, args, mc.cores = args$mc.cores, mc.preschedule = ifelse(length(data) > 100,TRUE,FALSE))
 
-  # res <- mclapply(x, calculatepath, class, args, mc.cores= args$mc.cores, mc.preschedule=ifelse(p > 100,TRUE,FALSE))
-
-  # res <- mclapply(x, calculatepath, class, args, mc.cores= args$mc.cores, mc.preschedule=ifelse(p > 100,TRUE,FALSE))
-
-  res <- list(calculatepath(x[[1]],class,args))  
-  
-  if (length(args$lambdalist) == 0){ # default parameter
-    l <- numeric(0)
-    prediction =  list()
-  } else{
-    l <- args$lambdalist
-    prediction <- lapply(res, function(z){list(table=z$prediction, order = z$order)})
-  }
   res <- lapply(res, function(z){list(table=z$table, order = z$order)})
-  ## small warning on last beta
-  if (args$standardize==TRUE && abs(res[[1]]$table[1,1])>10^(-8)){
-    warning("There may be some approximation errors (Beta(lambda_max) far from 0). You may want to lower the gamma if you are using one.")}
   
-  return(new("fusedanova",result=res, prediction=prediction, classes = class, weights=args$weights, lambdalist=l,algorithm=algoType))
+  ## small warning on last beta
+  if (standardize == TRUE && abs(res[[1]]$table[1,1]) > 10^(-8))
+    warning("There may be some approximation errors (Beta(lambda_max) far from 0). You may want to lower the gamma if you are using one.")
+  
+  return(new("fusedanova",
+             result = res,
+             classes = class,
+             weights = weights,
+             algorithm = ifelse(args$splits, "With possible Splits", "No Split")))
   
 }
-
 
 #########################################
 # Calculate path with or without splits #
 #########################################
-# calculate the path for one gene
-# x the vector of data, group the vector group belonging, args all the rest
-calculatepath <- function(x, group, args){
+calculatepath <- function(x, group, args) {
 
   ngroup <- tabulate(group)# vector of number by group
   xm <- rowsum(x,group)/ngroup
@@ -213,17 +165,20 @@ calculatepath <- function(x, group, args){
     xv <- ngroup/(ngroup-1)*(rowsum(x^2,group)/ngroup - xm^2)
   }
 
-  ordre <- order(xm)
-  xm <- xm[ordre] # sort from the smallest beta to the highest
-  ngroup <- ngroup[ordre]
-  xv <- xv[ordre]
-  if (args$splits==1){
-    res  <- .Call("noSplit",R_x=xm,R_xv=xv,R_ngroup=ngroup, R_args=args, PACKAGE="fusedanova")
-  }else{
-    res  <- .Call("withSplit",R_x=xm,R_xv=xv,R_ngroup=ngroup, R_args=args, PACKAGE="fusedanova")
-  }
+  o <- order(xm)
+  xm <- xm[o] # sort from the smallest beta to the highest
+  ngroup <- ngroup[o]
+  xv <- xv[o]
   
-  return(list(table=res$res, prediction=res$pred, order=ordre))
+  if (args$splits) {
+    if (args$verbose) cat("\nPath calculated with possible splits")
+    res  <- .Call("withSplit", R_x = xm, R_xv = xv, R_ngroup = ngroup, R_args = args, PACKAGE = "fusedanova")
+  } else {
+    if (args$verbose) cat("\nPath calculated without split")
+    res  <- .Call("noSplit"  , R_x = xm,R_xv = xv,R_ngroup = ngroup, R_args = args, PACKAGE = "fusedanova")
+  }
+
+  return(list(table = res$res, order = o))
   
 }
 
@@ -252,25 +207,28 @@ normalize <- function(x,group){
 #############################
 # default args
 #############################
-default.args.fa <- function() {
-  args <- 
+fusedANOVA_args <- function(weights, standardize, user_args) {
+  args <- modifyList(
     list(
       W           = matrix(nrow = 0, ncol = 0),
-      weights     = "default",
+      weights     = weights,
       gamma       = 0 ,
-      standardize = TRUE,
-      splits      = 0,
+      standardize = standardize,
+      splits      = ifelse(weights %in% c("default", "laplace", "gaussian", "adaptive"), FALSE, TRUE),
       checkargs   = TRUE,
       lambdalist  = numeric(0),
       mc.cores    = 1,
       verbose     = FALSE,
       mxSplitSize = 100,
       epsilon     = 1e-10
-      
-    )
+    ), user_args)
   args
 }
 
 ## constant list of treated weights
-possibleWeights = c("default","laplace","gaussian","adaptive","naivettest","ttest","welch","personal")
-varNeededWeights = c("welch", "ttest")
+possibleWeights  <- c("default","laplace","gaussian","adaptive","naivettest","ttest","welch","personal")
+varNeededWeights <- c("welch", "ttest")
+
+stopif <- function(expr, message) {
+  if(expr) stop(message)  
+}
