@@ -1,67 +1,45 @@
 ##' Fit a Fused ANOVA model
 ##'
-##' Adjust a penalized ANOVA model with Fused-LASSO (or Total
-##' Variation) penality, ie. a sum of weighted \eqn{\ell_1}{l1}-norm
-##' on the difference of each coefficient. See details below.
+##' Adjust a penalized ANOVA model with Fused-LASSO (or Total Variation) penality, 
+##' ie. a sum of weighted \eqn{\ell_1}{l1}-norm on the difference of each coefficient. 
+##' 
+##' @param x vector of observation for n individuals.
 ##'
-##' @param x matrix (or column vector) which rows represent
-##' individuals and columns independant variables.
+##' @param class vector or factor giving the initial class of each individual. If missing, 
+##' \code{1:length(x)} is used (clustering mode with one individual per class).
 ##'
-##' @param class vector or factor giving the class of each
-##' individual. If missing, \code{1:nrow(x)} is used (clustering mode
-##' with one individual per class).
-##'
-##' @param ... list of additional parameters to overwrite the defaults of the
-##' fitting procedure. Include :
+##' @parma weights character; which type of weights is supposed to be used.
+##' The supported weights are: \code{"default"}, \code{"laplace"}, \code{"gaussian"},
+##'  \code{"adaptive"}, \code{"naivettest"}, \code{"ttest"}, \code{"welch"} and \code{"personal"}. 
+##' See details below. By default, its value is \code{"default"}.
+##' 
+##' @param standardize logical; should the vector be standardized before computation?
+##' Default is \code{TRUE}.
+##' 
+##' @param ... list of additional parameters to control the optimization procedure. Include :
 ##' \itemize{%
-##' \item{\code{weights}: } {character; which type of weights is
-##' supposed to be used.  The supported weights are :
-##' \code{"default"}, \code{"laplace"}, \code{"gaussian"},
-##' \code{"adaptive"}, \code{"naivettest"}, \code{"ttest"},
-##' \code{"welch"} and \code{"personal"}. Se details below.  By
-##' default, its value is \code{"default"}.}
-##'
-##' \item{\code{gamma}: } {numeric; the \eqn{\gamma}{gamma} parameter needed for
-##' \code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. By default, 0.}
+##' \item{\code{gamma}: } {non-negative scalar; the \eqn{\gamma}{gamma} parameter needed for
+##' \code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. Default is 1.}
 ##'
 ##' \item{\code{W}: } {numeric matrix; the matrix of weights needed if the \code{"personal"}
 ##' weights were selected. By default, a matrix with zero row and zero column.}
 ##'
-##' \item{\code{standardize}: }{ logical; should each variable be standardized before the calculus ?
-##' By default, \code{TRUE}.
-##' }
-##'
-##'	\item{\code{splits}: }{ integer; coding for forcing split or nosplit algorithms :
+##'	\item{\code{splits}:}{boolean; coding for enforcing split or nosplit algorithm.
 ##' \itemize{%
-##'
-##' \item{\code{0} : }{Default value, let the programm decide
-##' which algorithm to use depending on the choosen \code{weights}.}
-##'
-##' \item{\code{1} : }{Forces the algorithm not to take the splits into account.}
-##'
-##' \item{\code{2} : }{Forces the algorithm to take the splits into account even if
-##' the solution paths contains no split.}
+##' \item{\code{FALSE}: }{Forces the algorithm not to take the splits into account.}
+##' \item{\code{TRUE}: }{Forces the algorithm to take the splits into account even if the solution paths contains no split.}
 ##' }
+##' If not set, the program applies the approriate depending on the choosen \code{weights}.
 ##' }
 ##' 
-##' \item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations.
-##' By default, \eqn{10^-10}{eps}.}
+##' \item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations when splits occur. By default, \eqn{10^-10}{eps}.}
 ##' 
 ##' \item{\code{checkargs}: }{logical; should arguments be checked to
 ##' (hopefully) avoid internal crashes? Default is \code{TRUE}.
 ##' Automatically set to \code{FALSE} when a call is made
 ##' from cross-validation}
 ##'
-##' \item{\code{lambdalist}: }{numeric vector; a set of \eqn{\lambda}{lambda} value for which
-##' a prediction is asked. By default, a null vector. If the length of \code{lambdalist}
-##' is not \code{0}, the \code{fusedanova} class returnded by the \code{fusedanova} function will
-##' have a not null attribute \code{prediction}.
-##' }
-##'
-##' \item{\code{mc.cores}: } {integer; the number of cores to use. The default uses a single core.}
-##'
-##' \item{\code{verbose}: } {boolean; should the code print out its progress.
-##' By default, FALSE. }
+##' \item{\code{verbose}: } {boolean; should the code print out its progress. By default, FALSE. }
 ##'
 ##' \item{\code{mxSplitSize}: } {integer; the maximum size for a group for being checked
 ## for eventual splitting. By default, 100.
@@ -112,40 +90,39 @@
 ##' }
 ##'
 ##' @export
-fusedanova <- function(x, class = factor(1:nrow(x)), weights = "default", standardize = TRUE, ...) {
+fusedanova <- function(x, class,
+                       weights = c("default", "laplace", "gaussian", "adaptive", "naivettest", "ttest", "welch", "personal"),
+                       standardize = TRUE, ...) {
   
   ## overwrite default parametrs with user's
+  weights <- match.arg(weights)
   args <- fusedANOVA_args(weights, standardize, list(...))
-  if (!is.data.frame(x)) x <- as.data.frame(x)
-  
+
   ## check to partilly avoid crashes of th C++ code
   if (args$checkargs) {
+    stopif(!is.numeric(x)                 , "x must be a numeric vector")
     stopif(any(is.na(x))                  , "NA value in x not allowed.")
-    stopif(nrow(x) != length(class)       , "data and class dimensions do not match")
+    stopif(length(x) != length(class)     , "data and class dimensions do not match")
     stopif(length(unique(class)) == 1     , "y has only one level.")
     stopif(!(weights %in% possibleWeights), "Unknown weight parameter formulation. Aborting.")
-    if (Sys.info()[['sysname']] == "Windows") {
-      warning("\nWindows does not support fork, enforcing mc.cores to '1'.")
-      args$mc.cores <- 1
-    }
   }
-  
+
   # conversion of class ot a factor
   if (!is.factor(class)) class <- as.factor(class)
   
   # normalization 
-  if (standardize) x <- lapply(x, normalize, class)
-  
-  res <- mclapply(x, calculatepath, class, args, mc.cores = args$mc.cores, mc.preschedule = ifelse(length(data) > 100,TRUE,FALSE))
+  if (standardize) x <- normalize(x, class)
 
-  res <- lapply(res, function(z){list(table=z$table, order = z$order)})
+  res <- calculatepath(x, class, args)
+
+  res <- list(table = res$table, order = res$order)
   
   ## small warning on last beta
-  if (standardize == TRUE && abs(res[[1]]$table[1,1]) > 10^(-8))
+  if (standardize == TRUE && abs(res$table[1,1]) > 10^(-8))
     warning("There may be some approximation errors (Beta(lambda_max) far from 0). You may want to lower the gamma if you are using one.")
   
   return(new("fusedanova",
-             result = res,
+             result = list(res),
              classes = class,
              weights = weights,
              algorithm = ifelse(args$splits, "With possible Splits", "No Split")))
@@ -212,12 +189,10 @@ fusedANOVA_args <- function(weights, standardize, user_args) {
     list(
       W           = matrix(nrow = 0, ncol = 0),
       weights     = weights,
-      gamma       = 0 ,
-      standardize = standardize,
-      splits      = ifelse(weights %in% c("default", "laplace", "gaussian", "adaptive"), FALSE, TRUE),
-      checkargs   = TRUE,
+      gamma       = 1,
       lambdalist  = numeric(0),
-      mc.cores    = 1,
+      checkargs   = TRUE,
+      splits      = ifelse(weights %in% c("default", "laplace", "gaussian", "adaptive"), FALSE, TRUE),
       verbose     = FALSE,
       mxSplitSize = 100,
       epsilon     = 1e-10
@@ -225,10 +200,31 @@ fusedANOVA_args <- function(weights, standardize, user_args) {
   args
 }
 
-## constant list of treated weights
-possibleWeights  <- c("default","laplace","gaussian","adaptive","naivettest","ttest","welch","personal")
-varNeededWeights <- c("welch", "ttest")
-
 stopif <- function(expr, message) {
-  if(expr) stop(message)  
+  if (expr) stop(message)  
+}
+
+##' @export 
+fusedanova2 <- function(x, class,
+                       weights = c("default", "laplace", "gaussian", "adaptive", "naivettest", "ttest", "welch", "personal"),
+                       standardize = TRUE, ...) {
+  
+  ## overwrite default parametrs with user's
+  weights <- match.arg(weights)
+  args <- fusedANOVA_args(weights, standardize, list(...))
+  
+  ## check to partilly avoid crashes of th C++ code
+  if (args$checkargs) {
+    stopif(!is.numeric(x)                 , "x must be a numeric vector")
+    stopif(any(is.na(x))                  , "NA value in x not allowed.")
+    stopif(length(x) != length(class)     , "data and class dimensions do not match")
+    stopif(length(unique(class)) == 1     , "y has only one level.")
+  }
+  
+  # conversion of class ot a factor
+  if (!is.factor(class)) class <- as.factor(class)
+  
+  myFA <- fusedANOVA$new(data = x, class0 = class, weighting = weights, standardize = standardize)
+  myFA$get_path(args)
+  myFA 
 }

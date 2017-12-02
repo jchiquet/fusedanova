@@ -3,6 +3,7 @@
 export(cv.fa)
 export(fusedANOVA)
 export(fusedanova)
+export(fusedanova2)
 exportClasses(cv.fa)
 exportClasses(fusedanova)
 exportMethods(dataconvert)

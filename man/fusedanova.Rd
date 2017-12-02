@@ -4,68 +4,42 @@
 \alias{fusedanova}
 \title{Fit a Fused ANOVA model}
 \usage{
-fusedanova(x, class = factor(1:nrow(x)), weights = "default",
-  standardize = TRUE, ...)
+fusedanova(x, class, weights = c("default", "laplace", "gaussian", "adaptive",
+  "naivettest", "ttest", "welch", "personal"), standardize = TRUE, ...)
 }
 \arguments{
-\item{x}{matrix (or column vector) which rows represent
-individuals and columns independant variables.}
+\item{x}{vector of observation for n individuals.}
 
-\item{class}{vector or factor giving the class of each
-individual. If missing, \code{1:nrow(x)} is used (clustering mode
-with one individual per class).}
+\item{class}{vector or factor giving the initial class of each individual. If missing, 
+\code{1:length(x)} is used (clustering mode with one individual per class).}
 
-\item{...}{list of additional parameters to overwrite the defaults of the
-fitting procedure. Include :
+\item{standardize}{logical; should the vector be standardized before computation?
+Default is \code{TRUE}.}
+
+\item{...}{list of additional parameters to control the optimization procedure. Include :
 \itemize{%
-\item{\code{weights}: } {character; which type of weights is
-supposed to be used.  The supported weights are :
-\code{"default"}, \code{"laplace"}, \code{"gaussian"},
-\code{"adaptive"}, \code{"naivettest"}, \code{"ttest"},
-\code{"welch"} and \code{"personal"}. Se details below.  By
-default, its value is \code{"default"}.}
-
-\item{\code{gamma}: } {numeric; the \eqn{\gamma}{gamma} parameter needed for
-\code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. By default, 0.}
+\item{\code{gamma}: } {non-negative scalar; the \eqn{\gamma}{gamma} parameter needed for
+\code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. Default is 1.}
 
 \item{\code{W}: } {numeric matrix; the matrix of weights needed if the \code{"personal"}
 weights were selected. By default, a matrix with zero row and zero column.}
 
-\item{\code{standardize}: }{ logical; should each variable be standardized before the calculus ?
-By default, \code{TRUE}.
-}
-
-\item{\code{splits}: }{ integer; coding for forcing split or nosplit algorithms :
+\item{\code{splits}:}{boolean; coding for enforcing split or nosplit algorithm.
 \itemize{%
-
-\item{\code{0} : }{Default value, let the programm decide
-which algorithm to use depending on the choosen \code{weights}.}
-
-\item{\code{1} : }{Forces the algorithm not to take the splits into account.}
-
-\item{\code{2} : }{Forces the algorithm to take the splits into account even if
-the solution paths contains no split.}
+\item{\code{FALSE}: }{Forces the algorithm not to take the splits into account.}
+\item{\code{TRUE}: }{Forces the algorithm to take the splits into account even if the solution paths contains no split.}
 }
+If not set, the program applies the approriate depending on the choosen \code{weights}.
 }
 
-\item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations.
-By default, \eqn{10^-10}{eps}.}
+\item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations when splits occur. By default, \eqn{10^-10}{eps}.}
 
 \item{\code{checkargs}: }{logical; should arguments be checked to
 (hopefully) avoid internal crashes? Default is \code{TRUE}.
 Automatically set to \code{FALSE} when a call is made
 from cross-validation}
 
-\item{\code{lambdalist}: }{numeric vector; a set of \eqn{\lambda}{lambda} value for which
-a prediction is asked. By default, a null vector. If the length of \code{lambdalist}
-is not \code{0}, the \code{fusedanova} class returnded by the \code{fusedanova} function will
-have a not null attribute \code{prediction}.
-}
-
-\item{\code{mc.cores}: } {integer; the number of cores to use. The default uses a single core.}
-
-\item{\code{verbose}: } {boolean; should the code print out its progress.
-By default, FALSE. }
+\item{\code{verbose}: } {boolean; should the code print out its progress. By default, FALSE. }
 
 \item{\code{mxSplitSize}: } {integer; the maximum size for a group for being checked
 the cores available. }
@@ -98,9 +72,8 @@ and \eqn{n_k}{n_k} the number of sample in each condition.
 More details related to the weights are coming...
 }
 \description{
-Adjust a penalized ANOVA model with Fused-LASSO (or Total
-Variation) penality, ie. a sum of weighted \eqn{\ell_1}{l1}-norm
-on the difference of each coefficient. See details below.
+Adjust a penalized ANOVA model with Fused-LASSO (or Total Variation) penality, 
+ie. a sum of weighted \eqn{\ell_1}{l1}-norm on the difference of each coefficient.
 }
 \examples{
 \dontrun{
