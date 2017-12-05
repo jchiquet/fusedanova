@@ -95,7 +95,7 @@ cv.fa <- function(x,
       stop("x and y have not correct dimensions")
     if(length(unique(class))==1)
       stop("y has only one level.")
-    if(!(args$weights %in% possibleWeights))
+    if(!(args$weights %in% c("default","laplace","gaussian","adaptive","naivettest","ttest","welch","personal")))
       stop("Unknown weight parameter formulation. Aborting.")
     if (Sys.info()[['sysname']] == "Windows") {
       if(verbose){
@@ -116,10 +116,10 @@ cv.fa <- function(x,
   if (is.null(lambdalist)) {
     if (args$log.scale == FALSE){
       args$lambdalist = seq(0,lambdamax,len=args$nlambda)
-    }else{
+    } else{
       args$lambdalist = 10 ^ seq(log10(args$min.ratio*lambdamax),log10(lambdamax), len=args$nlambda)
     }
-  }else{
+  } else{
     args$lambdalist = sort(lambdalist,decreasing=FALSE)
   }
   
@@ -238,7 +238,7 @@ cv.fa <- function(x,
 }
 
 # return error
-simplecv<-function(xtrain,ytrain,xtest,ytest,args){
+simplecv <- function(xtrain,ytrain,xtest,ytest,args){
   
   # Objective : xm and xmtest should have the same length for c++ code
   # we modify ytest as a factor containing the levels of y and use tapply
@@ -248,12 +248,12 @@ simplecv<-function(xtrain,ytrain,xtest,ytest,args){
   
   index = ytest %in% ytrain # what to discard.
   ytest = factor(ytest[index],levels=levels(ytrain)) # discard but keep the ytrain levels
-  xtest =xtest[index]  # same
+  xtest = xtest[index]  # same
   
   ngroup = tapply(ytrain,ytrain,length) # vector of number by group
   xm = tapply(xtrain,ytrain,mean)
   xv = rep(0,length(xm))
-  if (args$weights %in% varNeededWeights){ # var needed if weights are of welch or ttest type
+  if (args$weights %in% c("welch", "naivettest", "ttest")){ # var needed if weights are of welch or ttest type
     xv = tapply(xtrain,ytrain,var)
     xv[is.na(xv)] <- 0
   }
@@ -316,27 +316,4 @@ normalize.cv <- function(x,group,omit){
   return(res)
 }
 
-#############################
-# default args
-#############################
-default.args.cv <- function() {
-  return(list(
-    weights = "default",
-    W=matrix(nrow=0, ncol=0),
-    gamma = 0 ,
-    standardize = TRUE,
-    splits = 0,
-    epsilon =10^-10,
-    checkargs = TRUE,
-    nlambda =100,
-    log.scale = TRUE,
-    min.ratio = 1e-8,
-    mc.cores = detectCores(),
-    verbose = FALSE,
-    mxSplitSize = 100
-  ))
-}
 
-# constant list of treated weights
-possibleWeights = c("default","laplace","gaussian","adaptive","naivettest","ttest","welch","personal")
-varNeededWeights = c("welch", "naivettest", "ttest")

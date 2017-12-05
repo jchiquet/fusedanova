@@ -99,5 +99,6 @@
 ##' 2011.
 ##'
 ##' @import parallel ggplot2 grid methods plyr
+##' @importFrom Rcpp sourceCpp
 ##' @useDynLib fusedanova
 NULL

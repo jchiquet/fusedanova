@@ -17,7 +17,8 @@ Imports:
     parallel,
     grid,
     plyr,
-    R6
+    R6,
+    Rcpp
 Suggests:
     testthat
 LinkingTo: Rcpp

@@ -104,7 +104,6 @@ fusedanova <- function(x, class,
     stopif(any(is.na(x))                  , "NA value in x not allowed.")
     stopif(length(x) != length(class)     , "data and class dimensions do not match")
     stopif(length(unique(class)) == 1     , "y has only one level.")
-    stopif(!(weights %in% possibleWeights), "Unknown weight parameter formulation. Aborting.")
   }
 
   # conversion of class ot a factor
@@ -137,7 +136,7 @@ calculatepath <- function(x, group, args) {
   ngroup <- tabulate(group)# vector of number by group
   xm <- rowsum(x,group)/ngroup
   xv <- rep(0,length(xm))
-  if (args$weights %in% varNeededWeights){
+  if (args$weights %in% c("welch", "naivettest", "ttest")){
     ## var needed if weights are of welch or ttest type
     xv <- ngroup/(ngroup-1)*(rowsum(x^2,group)/ngroup - xm^2)
   }
@@ -148,10 +147,10 @@ calculatepath <- function(x, group, args) {
   xv <- xv[o]
   
   if (args$splits) {
-    if (args$verbose) cat("\nPath calculated with possible splits")
+    if (args$verbose) cat("\nPath calculated with possible splits\n")
     res  <- .Call("withSplit", R_x = xm, R_xv = xv, R_ngroup = ngroup, R_args = args, PACKAGE = "fusedanova")
   } else {
-    if (args$verbose) cat("\nPath calculated without split")
+    if (args$verbose) cat("\nPath calculated without split\n")
     res  <- .Call("noSplit"  , R_x = xm,R_xv = xv,R_ngroup = ngroup, R_args = args, PACKAGE = "fusedanova")
   }
 
@@ -181,31 +180,8 @@ normalize <- function(x,group){
   res
 }
 
-#############################
-# default args
-#############################
-fusedANOVA_args <- function(weights, standardize, user_args) {
-  args <- modifyList(
-    list(
-      W           = matrix(nrow = 0, ncol = 0),
-      weights     = weights,
-      gamma       = 1,
-      lambdalist  = numeric(0),
-      checkargs   = TRUE,
-      splits      = ifelse(weights %in% c("default", "laplace", "gaussian", "adaptive"), FALSE, TRUE),
-      verbose     = FALSE,
-      mxSplitSize = 100,
-      epsilon     = 1e-10
-    ), user_args)
-  args
-}
-
-stopif <- function(expr, message) {
-  if (expr) stop(message)  
-}
-
 ##' @export 
-fusedanova2 <- function(x, class,
+fusedanova2 <- function(x, class = rep(1:length(x)),
                        weights = c("default", "laplace", "gaussian", "adaptive", "naivettest", "ttest", "welch", "personal"),
                        standardize = TRUE, ...) {
   
@@ -214,17 +190,15 @@ fusedanova2 <- function(x, class,
   args <- fusedANOVA_args(weights, standardize, list(...))
   
   ## check to partilly avoid crashes of th C++ code
-  if (args$checkargs) {
-    stopif(!is.numeric(x)                 , "x must be a numeric vector")
-    stopif(any(is.na(x))                  , "NA value in x not allowed.")
-    stopif(length(x) != length(class)     , "data and class dimensions do not match")
-    stopif(length(unique(class)) == 1     , "y has only one level.")
-  }
-  
+  stopif(!is.numeric(x)                 , "x must be a numeric vector")
+  stopif(any(is.na(x))                  , "NA value in x not allowed.")
+  stopif(length(x) != length(class)     , "data and class dimensions do not match")
+  stopif(length(unique(class)) == 1     , "y has only one level.")
+
   # conversion of class ot a factor
   if (!is.factor(class)) class <- as.factor(class)
   
   myFA <- fusedANOVA$new(data = x, class0 = class, weighting = weights, standardize = standardize)
   myFA$get_path(args)
-  myFA 
+  myFA
 }
