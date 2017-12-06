@@ -90,7 +90,7 @@
 ##' }
 ##'
 ##' @export
-fusedanova <- function(x, class,
+fusedanova <- function(x, class = 1:length(x),
                        weights = c("default", "laplace", "gaussian", "adaptive", "naivettest", "ttest", "welch", "personal"),
                        standardize = TRUE, ...) {
   

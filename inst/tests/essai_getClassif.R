@@ -1,21 +1,16 @@
+rm(list=ls())
 library(fusedanova)
+library(multifusedanova)
 library(dplyr)
-data(aves)
-fa0 <- fusedanova(aves$weight, aves$family) 
-fa <- fusedanova2(aves$weight, aves$family) 
 
-path <- fa$path %>% filter(iup != idown) %>% arrange(desc(lambda))
+y <- c(2,1,5,7,9,16,13)
+n <- length(y); K <- n; nk <- 1
 
-if (is.null(lambdas))
-  lambdas <- unique(path$lambda)
+fa0 <- fusedanova(y, standardize=FALSE) 
+cl_val <- get.fa.vec.classifC(fa0)
 
-K <- nlevels(fa$cl0)
+## new code
+fa  <- fusedanova2(y, standardize=FALSE) 
+cl_new  <- fa$cut_tree()
 
-## fils
-fils <- CalculeFils(as.integer(path$idown), K)	
-classif <- vCalculeClassif(lambdas,
-                           path$lambda,
-                           as.integer(path$idown),
-                           as.integer(path$iup),
-                           as.integer(fils), as.integer(fa$cl0), K)
-res <- matrix(classif, nrow = K)
+

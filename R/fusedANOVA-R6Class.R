@@ -26,7 +26,8 @@ fusedANOVA <-
     private = list(
       n      = NULL, # sample size
       k      = NULL, # number of groups in class0
-      nk     = NULL  # group sizes in class0
+      nk     = NULL, # group sizes in class0
+      fusion = NULL  # path with fusion only
     ), 
     active = list(
       penalties = function() {self$path$lambda}
@@ -71,9 +72,26 @@ fusedANOVA$set("public", "get_path",
                       R_ngroup = private$nk[self$order],
                       R_args = args, PACKAGE = "fusedanova")$res
     }
+    private$fusion <- self$path %>% filter(idown != iup) %>% arrange(desc(lambda))
+      
     invisible(self)
   }
 )
+
+fusedANOVA$set("public", "cut_tree", 
+  function(heights = NULL) {
+    if (is.null(heights)) {
+      heights <- self$penalties
+    } else {
+      stopifnot(all(heights %in% fusion$lambda))
+    }
+    heights <- sort(unique(heights), decreasing = TRUE)        
+    
+    cl <- get_clustering(heights, private$fusion$lambda, private$fusion$idown, private$fusion$iup, K)
+    cl <- cl[self$order, ]
+    list(cl = cl, heights = heights)
+  })
+
 
 fusedANOVA$set("public", "cross_validate", 
   function(K = 10, 
