@@ -3,6 +3,7 @@
 ##' @description
 ##'
 ##' @importFrom R6 R6Class
+##' @import dplyr
 ##' @export
 ##' 
 fusedANOVA <-
@@ -86,17 +87,9 @@ fusedANOVA$set("public", "cut_tree",
       stopifnot(all(heights %in% fusion$lambda))
     }
     heights <- sort(unique(heights), decreasing = TRUE)        
-    
-    cl <- get_clustering(heights, private$fusion$lambda, private$fusion$idown, private$fusion$iup, K)
+
+    cl <- get_clustering(heights, private$fusion$lambda, private$fusion$idown, private$fusion$iup, private$k)
     cl <- cl[self$order, ]
     list(cl = cl, heights = heights)
   })
 
-
-fusedANOVA$set("public", "cross_validate", 
-  function(K = 10, 
-           folds= split(sample(1:length(self$data)), rep(1:K, length = length(self$data))),
-           verbose = TRUE) {
-    
-  }
-)
