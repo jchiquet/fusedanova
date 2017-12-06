@@ -20,18 +20,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_slopes
+NumericVector get_slopes(NumericVector& xm, IntegerVector& ngroup, NumericVector& xv, std::string weights, double gamma, NumericMatrix& W);
+RcppExport SEXP _fusedanova_get_slopes(SEXP xmSEXP, SEXP ngroupSEXP, SEXP xvSEXP, SEXP weightsSEXP, SEXP gammaSEXP, SEXP WSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xm(xmSEXP);
+    Rcpp::traits::input_parameter< IntegerVector& >::type ngroup(ngroupSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type xv(xvSEXP);
+    Rcpp::traits::input_parameter< std::string >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type W(WSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_slopes(xm, ngroup, xv, weights, gamma, W));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP noSplit(SEXP, SEXP, SEXP, SEXP);
 RcppExport SEXP noSplitcv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-RcppExport SEXP Splitcv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-RcppExport SEXP withSplit(SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"_fusedanova_get_clustering", (DL_FUNC) &_fusedanova_get_clustering, 5},
+    {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 6},
     {"noSplit",                    (DL_FUNC) &noSplit,                    4},
     {"noSplitcv",                  (DL_FUNC) &noSplitcv,                  6},
-    {"Splitcv",                    (DL_FUNC) &Splitcv,                    6},
-    {"withSplit",                  (DL_FUNC) &withSplit,                  4},
     {NULL, NULL, 0}
 };
 

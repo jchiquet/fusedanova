@@ -6,7 +6,6 @@ fusedANOVA_args <- function(weights, standardize, user_args) {
       gamma       = 1,
       lambdalist  = numeric(0),
       checkargs   = TRUE,
-      splits      = ifelse(weights %in% c("default", "laplace", "gaussian", "adaptive"), FALSE, TRUE),
       verbose     = FALSE,
       mxSplitSize = 100,
       epsilon     = 1e-10

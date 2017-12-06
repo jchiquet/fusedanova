@@ -141,12 +141,6 @@ cv.fa <- function(x,
     }
   }
   
-  if (args$split==1){
-    algoType = "No Split"
-  } else{
-    algoType = "With possible Splits"
-  }
-  
   one.fold <- function(k,z) {
     omit <- folds[[k]]
     if (args$standardize==TRUE){z = normalize.cv(x=z,group=class,omit=omit)}
@@ -279,11 +273,7 @@ simplecv <- function(xtrain,ytrain,xtest,ytest,args){
   # \sum_i{(\hat{Y_i}(\lambda)-Y_i)^2} = sum_k{ngroup(k)*(\hat{Y}_k - sum(Y_i in k))} + sum{Var(group_k)}
   errVar = sum(xvtest)
   
-  if (args$splits==1){
-    errEst  <- .Call("noSplitcv",R_x=xm,R_xv=xv, R_ngroup=ngroup, R_xtest =xmtest, R_ngrouptest=ngrouptest, R_args=args, PACKAGE="fusedanova")
-  }else{
-    errEst  <- .Call("Splitcv",R_x=xm,R_xv=xv, R_ngroup=ngroup, R_xtest =xmtest, R_ngrouptest=ngrouptest, R_args=args, PACKAGE="fusedanova")
-  }
+  errEst  <- .Call("noSplitcv",R_x=xm,R_xv=xv, R_ngroup=ngroup, R_xtest =xmtest, R_ngrouptest=ngrouptest, R_args=args, PACKAGE="fusedanova")
   
   errEst = errEst + errVar
   

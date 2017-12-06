@@ -124,7 +124,7 @@ fusedanova <- function(x, class = 1:length(x),
              result = list(res),
              classes = class,
              weights = weights,
-             algorithm = ifelse(args$splits, "With possible Splits", "No Split")))
+             algorithm = "No Split"))
   
 }
 
@@ -146,13 +146,7 @@ calculatepath <- function(x, group, args) {
   ngroup <- ngroup[o]
   xv <- xv[o]
   
-  if (args$splits) {
-    if (args$verbose) cat("\nPath calculated with possible splits\n")
-    res  <- .Call("withSplit", R_x = xm, R_xv = xv, R_ngroup = ngroup, R_args = args, PACKAGE = "fusedanova")
-  } else {
-    if (args$verbose) cat("\nPath calculated without split\n")
-    res  <- .Call("noSplit"  , R_x = xm,R_xv = xv,R_ngroup = ngroup, R_args = args, PACKAGE = "fusedanova")
-  }
+  res  <- .Call("noSplit"  , R_x = xm,R_xv = xv,R_ngroup = ngroup, R_args = args, PACKAGE = "fusedanova")
 
   return(list(table = res$res, order = o))
   
@@ -202,3 +196,4 @@ fusedanova2 <- function(x, class = rep(1:length(x)),
   myFA$get_path(args)
   myFA
 }
+

@@ -57,22 +57,11 @@ fusedANOVA$set("public", "get_path",
     if (self$weighting %in% c("welch", "naivettest", "ttest"))
       var_k <- private$nk/(private$nk - 1)*(rowsum(self$data^2,self$cl0)/private$nk - mean_k^2)
     self$order <- order(mean_k)
-    
-    if (args$splits) {
-      if (args$verbose) cat("\nPath calculated with possible splits\n")
-      self$path  <- .Call("withSplit",
-                      R_x      = mean_k[self$order],
-                      R_xv     = var_k[self$order],
-                      R_ngroup = private$nk[self$order],
-                      R_args = args, PACKAGE = "fusedanova")$res
-    } else {
-      if (args$verbose) cat("\nPath calculated without split\n")
-      self$path  <- .Call("noSplit",
-                      R_x      = mean_k[self$order],
-                      R_xv     = var_k[self$order],
-                      R_ngroup = private$nk[self$order],
-                      R_args = args, PACKAGE = "fusedanova")$res
-    }
+    self$path  <- .Call("noSplit",
+                    R_x      = mean_k[self$order],
+                    R_xv     = var_k[self$order],
+                    R_ngroup = private$nk[self$order],
+                    R_args = args, PACKAGE = "fusedanova")$res
     private$fusion <- self$path %>% filter(idown != iup) %>% arrange(desc(lambda))
       
     invisible(self)
