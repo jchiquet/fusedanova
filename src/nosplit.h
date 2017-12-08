@@ -38,7 +38,7 @@ struct Group {
 };
 
 // tree construction function
-Group* maketree(double*,int, double*,double*,double); // general function
+Group* maketree(double*,int, double*,double*); // general function
 vector<double> calculateSlope(NumericVector, NumericVector,NumericVector,std::string,double,NumericMatrix,int); // initialize the slopes
 Group* fuse_groups(Groups groups); // iteratively construct the tree of fusing groups
 double getlambda(Group *g1,Group *g2); // calculate the fusing lambda for 2 groups

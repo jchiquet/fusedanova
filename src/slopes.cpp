@@ -53,7 +53,7 @@ NumericVector get_slopes(NumericVector &xm    ,
       slopes2[i] = sum2;
     }
     slopes2[0] =0;	
-    
+  
     for (int i=0;i<n;i++){
       slopes.push_back(slopes1[i]*exp(gamma * xm[i])- slopes2[i]*exp(-gamma * xm[i]));
     }		

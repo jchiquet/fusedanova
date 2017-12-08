@@ -146,7 +146,7 @@ calculatepath <- function(x, group, args) {
   ngroup <- ngroup[o]
   xv <- xv[o]
   
-  res  <- .Call("noSplit"  , R_x = xm,R_xv = xv,R_ngroup = ngroup, R_args = args, PACKAGE = "fusedanova")
+  res  <- noSplit(xm, xv, ngroup, args)
 
   return(list(table = res$res, order = o))
   

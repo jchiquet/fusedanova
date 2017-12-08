@@ -3,7 +3,7 @@
 ##' @description
 ##'
 ##' @importFrom R6 R6Class
-##' @import dplyr
+##' @importFrom dplyr arrange desc filter %>%
 ##' @export
 ##' 
 fusedANOVA <-
@@ -57,11 +57,10 @@ fusedANOVA$set("public", "get_path",
     if (self$weighting %in% c("welch", "naivettest", "ttest"))
       var_k <- private$nk/(private$nk - 1)*(rowsum(self$data^2,self$cl0)/private$nk - mean_k^2)
     self$order <- order(mean_k)
-    self$path  <- .Call("noSplit",
-                    R_x      = mean_k[self$order],
-                    R_xv     = var_k[self$order],
-                    R_ngroup = private$nk[self$order],
-                    R_args = args, PACKAGE = "fusedanova")$res
+    self$path  <- noSplit(mean_k[self$order],
+                          var_k[self$order],
+                          private$nk[self$order],
+                          args)$res
     private$fusion <- self$path %>% filter(idown != iup) %>% arrange(desc(lambda))
       
     invisible(self)
@@ -80,5 +79,45 @@ fusedANOVA$set("public", "cut_tree",
     cl <- get_clustering(heights, private$fusion$lambda, private$fusion$idown, private$fusion$iup, private$k)
     cl <- cl[self$order, ]
     list(cl = cl, heights = heights)
-  })
+  }
+)
+
+fusedANOVA$set("public", "get_slopes", 
+  function() {
+    mean_k <- rowsum(self$data, self$cl0)/private$nk
+    var_k  <- rep(0,private$k)
+    if (self$weighting %in% c("welch", "naivettest", "ttest"))
+      var_k <- private$nk/(private$nk - 1)*(rowsum(self$data^2,self$cl0)/private$nk - mean_k^2)
+    self$order <- order(mean_k)
+    
+    w <- get_slopes(mean_k[self$order], private$nk[self$order], var_k[self$order], self$weighting, 1, matrix(0,0,0) )  
+    w
+  }
+)
+
+fusedANOVA$set("public", "get_slopes2", 
+  function() {
+    mean_k <- rowsum(self$data, self$cl0)/private$nk
+    var_k  <- rep(0,private$k)
+    if (self$weighting %in% c("welch", "naivettest", "ttest"))
+      var_k <- private$nk/(private$nk - 1)*(rowsum(self$data^2,self$cl0)/private$nk - mean_k^2)
+    self$order <- order(mean_k)
+
+    nk <- private$nk[self$order]    
+    mean_k <- mean_k[self$order]    
+    var_k <- var_k[self$order]    
+    
+    ## as fast à C++
+    if (self$weighting == "laplace") {
+      ## Laplace weights (nk.nl exp(- gamma | yk - yl|)), computation in O(n)/O(K)
+      c1 <- rev(cumsum(c(0,rev(nk * exp(-mean_k))[-private$k])))
+      c2 <- cumsum(c(0,(nk * exp(mean_k))[-private$k]))
+      w <- exp(mean_k) * c1 - exp(-mean_k) * c2
+    } else {
+      ## default weights (nk.nl), computation in O(n)/O(K)
+      w <- sum(nk) + nk - 2 * cumsum(nk)
+    }
+    w
+  }
+)
 

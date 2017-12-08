@@ -3,9 +3,8 @@
 #include <stdio.h>
 #include "nosplit.h"
 
-#define square(x) ((x)*(x))
+# define square(x) ((x)*(x))
 # define NEW_EVENT_THRESH 1e-16
-double epsilon = NEW_EVENT_THRESH; // needed because of the C++ round up
 
 vector<double> calculateSlope(NumericVector xm,NumericVector ngroup,NumericVector xv, 
 	std::string weights, double gamma, NumericMatrix W, int n){
@@ -158,16 +157,13 @@ vector<double> calculateSlope(NumericVector xm,NumericVector ngroup,NumericVecto
 }
 
 // General function
-Group* maketree(double* x ,int K, double* sl, double* ngroup, double eps){
+Group* maketree(double* x ,int K, double* sl, double* ngroup){
 
 	// initialisation 
 	Group *g=0,*gi,*gj;
 	Groups::iterator g_it, g_it_next;
 	Groups myGroups;
 
-	// set epsilon tolerance parameter
-	epsilon = eps; 
-	
 	//create the innitial list of groups 
 	for (int i=0; i<K; i++){
 		g = new Group;

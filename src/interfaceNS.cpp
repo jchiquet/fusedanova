@@ -1,9 +1,9 @@
 #include <Rcpp.h>
-//#include <RcppArmadillo.h>
+#include <stdlib.h>
+#include <vector>
 #include "nosplit.h"
 
 using namespace Rcpp ;
-//using namespace arma;
 
 SEXP tree2list(Group *g){
 	int nrow = 2*g->len -1; // nb infos = K init gpes + K-1 fusions 
@@ -44,22 +44,19 @@ SEXP tree2list(Group *g, NumericVector lambdalist){
 	return List::create(Named("res") = res ,Named("pred")= predict);
 }
 
+//' @export
+// [[Rcpp::export]]
+Rcpp::List noSplit(NumericVector x,
+                   NumericVector xv,
+                   NumericVector ngroup,
+                   List args){
 
-// we process each dimension individually using this function
-RcppExport SEXP noSplit(SEXP R_x,SEXP R_xv,SEXP R_ngroup,SEXP R_args){
-
-	NumericVector x(R_x);
-	NumericVector xv(R_xv);
-	NumericVector ngroup(R_ngroup);
-	List args(R_args);
-  
 	std::string weights = Rcpp::as<std::string>(args["weights"]); 
 	double gamma = Rcpp::as<double>(args["gamma"]); 
 	bool verbose =  Rcpp::as<bool>(args["verbose"]);
 	NumericMatrix W = args["W"];
 	NumericVector lambdalist = args["lambdalist"];
-	double epsilon = Rcpp::as<double>(args["epsilon"]);
-	
+
 	SEXP L;
   
 	if (verbose){
@@ -74,7 +71,7 @@ RcppExport SEXP noSplit(SEXP R_x,SEXP R_xv,SEXP R_ngroup,SEXP R_args){
 		Rprintf("Fusing groups \n");
 	} 
 	
-	Group *G = maketree(&x[0], x.length(), &sl[0],&ngroup[0],epsilon);
+	Group *G = maketree(&x[0], x.length(), &sl[0],&ngroup[0]);
 
 	if (lambdalist.length()==0){
 		if(verbose){
@@ -95,7 +92,7 @@ RcppExport SEXP noSplit(SEXP R_x,SEXP R_xv,SEXP R_ngroup,SEXP R_args){
 
 
 // we process each dimension individually using this function
-RcppExport SEXP noSplitcv(SEXP R_x,SEXP R_xv,SEXP R_ngroup, SEXP R_xtest,SEXP R_ngrouptest ,SEXP R_args){
+RcppExport SEXP noSplitcv(SEXP R_x,SEXP R_xv,SEXP R_ngroup, SEXP R_xtest,SEXP R_ngrouptest ,SEXP R_args) {
 
 	NumericVector x(R_x);
 	NumericVector xv(R_xv);
@@ -106,7 +103,6 @@ RcppExport SEXP noSplitcv(SEXP R_x,SEXP R_xv,SEXP R_ngroup, SEXP R_xtest,SEXP R_
   
 	std::string weights = Rcpp::as<std::string>(args["weights"]); 
 	double gamma = Rcpp::as<double>(args["gamma"]); 
-	double epsilon = Rcpp::as<double>(args["epsilon"]);
 	NumericMatrix W = args["W"];
 	NumericVector lambdalist = args["lambdalist"];
 
@@ -114,7 +110,7 @@ RcppExport SEXP noSplitcv(SEXP R_x,SEXP R_xv,SEXP R_ngroup, SEXP R_xtest,SEXP R_
 
 	vector<double> sl = calculateSlope(x,ngroup,xv,weights,gamma,W,x.length());
  
-	Group *G = maketree(&x[0], x.length(), &sl[0],&ngroup[0],epsilon);
+	Group *G = maketree(&x[0], x.length(), &sl[0],&ngroup[0]);
 
 	error_cv(G,&lambdalist[0],lambdalist.length(),&xtest[0], &ngrouptest[0],&error[0]);
 

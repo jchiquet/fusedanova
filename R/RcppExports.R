@@ -7,6 +7,11 @@ get_clustering <- function(set_lambdas, all_lambdas, idown, iup, K) {
 }
 
 #' @export
+noSplit <- function(x, xv, ngroup, args) {
+    .Call('_fusedanova_noSplit', PACKAGE = 'fusedanova', x, xv, ngroup, args)
+}
+
+#' @export
 get_slopes <- function(xm, ngroup, xv, weights, gamma, W) {
     .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, xv, weights, gamma, W)
 }
