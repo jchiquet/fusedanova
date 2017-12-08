@@ -25,16 +25,6 @@ Default is \code{TRUE}.}
 \item{\code{W}: } {numeric matrix; the matrix of weights needed if the \code{"personal"}
 weights were selected. By default, a matrix with zero row and zero column.}
 
-\item{\code{splits}:}{boolean; coding for enforcing split or nosplit algorithm.
-\itemize{%
-\item{\code{FALSE}: }{Forces the algorithm not to take the splits into account.}
-\item{\code{TRUE}: }{Forces the algorithm to take the splits into account even if the solution paths contains no split.}
-}
-If not set, the program applies the approriate depending on the choosen \code{weights}.
-}
-
-\item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations when splits occur. By default, \eqn{10^-10}{eps}.}
-
 \item{\code{checkargs}: }{logical; should arguments be checked to
 (hopefully) avoid internal crashes? Default is \code{TRUE}.
 Automatically set to \code{FALSE} when a call is made

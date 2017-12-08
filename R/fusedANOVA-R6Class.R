@@ -57,10 +57,11 @@ fusedANOVA$set("public", "get_path",
     if (self$weighting %in% c("welch", "naivettest", "ttest"))
       var_k <- private$nk/(private$nk - 1)*(rowsum(self$data^2,self$cl0)/private$nk - mean_k^2)
     self$order <- order(mean_k)
-    self$path  <- noSplit(mean_k[self$order],
-                          var_k[self$order],
-                          private$nk[self$order],
-                          args)$res
+
+    slopes <- get_slopes(mean_k[self$order], private$nk[self$order], var_k[self$order], self$weighting, 1, matrix(0,0,0) )
+    
+    self$path  <- fuse(mean_k[self$order], slopes, private$nk[self$order])
+
     private$fusion <- self$path %>% filter(idown != iup) %>% arrange(desc(lambda))
       
     invisible(self)

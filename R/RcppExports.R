@@ -2,13 +2,13 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @export
-get_clustering <- function(set_lambdas, all_lambdas, idown, iup, K) {
-    .Call('_fusedanova_get_clustering', PACKAGE = 'fusedanova', set_lambdas, all_lambdas, idown, iup, K)
+fuse <- function(x, slopes, ngroup) {
+    .Call('_fusedanova_fuse', PACKAGE = 'fusedanova', x, slopes, ngroup)
 }
 
 #' @export
-noSplit <- function(x, xv, ngroup, args) {
-    .Call('_fusedanova_noSplit', PACKAGE = 'fusedanova', x, xv, ngroup, args)
+get_clustering <- function(set_lambdas, all_lambdas, idown, iup, K) {
+    .Call('_fusedanova_get_clustering', PACKAGE = 'fusedanova', set_lambdas, all_lambdas, idown, iup, K)
 }
 
 #' @export

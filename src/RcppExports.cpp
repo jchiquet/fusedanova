@@ -5,6 +5,19 @@
 
 using namespace Rcpp;
 
+// fuse
+DataFrame fuse(NumericVector x, NumericVector slopes, NumericVector ngroup);
+RcppExport SEXP _fusedanova_fuse(SEXP xSEXP, SEXP slopesSEXP, SEXP ngroupSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type slopes(slopesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ngroup(ngroupSEXP);
+    rcpp_result_gen = Rcpp::wrap(fuse(x, slopes, ngroup));
+    return rcpp_result_gen;
+END_RCPP
+}
 // get_clustering
 IntegerMatrix get_clustering(const NumericVector& set_lambdas, const NumericVector& all_lambdas, const IntegerVector& idown, const IntegerVector& iup, const int K);
 RcppExport SEXP _fusedanova_get_clustering(SEXP set_lambdasSEXP, SEXP all_lambdasSEXP, SEXP idownSEXP, SEXP iupSEXP, SEXP KSEXP) {
@@ -17,20 +30,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const IntegerVector& >::type iup(iupSEXP);
     Rcpp::traits::input_parameter< const int >::type K(KSEXP);
     rcpp_result_gen = Rcpp::wrap(get_clustering(set_lambdas, all_lambdas, idown, iup, K));
-    return rcpp_result_gen;
-END_RCPP
-}
-// noSplit
-Rcpp::List noSplit(NumericVector x, NumericVector xv, NumericVector ngroup, List args);
-RcppExport SEXP _fusedanova_noSplit(SEXP xSEXP, SEXP xvSEXP, SEXP ngroupSEXP, SEXP argsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type xv(xvSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type ngroup(ngroupSEXP);
-    Rcpp::traits::input_parameter< List >::type args(argsSEXP);
-    rcpp_result_gen = Rcpp::wrap(noSplit(x, xv, ngroup, args));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -51,13 +50,10 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP noSplitcv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-
 static const R_CallMethodDef CallEntries[] = {
+    {"_fusedanova_fuse", (DL_FUNC) &_fusedanova_fuse, 3},
     {"_fusedanova_get_clustering", (DL_FUNC) &_fusedanova_get_clustering, 5},
-    {"_fusedanova_noSplit", (DL_FUNC) &_fusedanova_noSplit, 4},
     {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 6},
-    {"noSplitcv",                  (DL_FUNC) &noSplitcv,                  6},
     {NULL, NULL, 0}
 };
 

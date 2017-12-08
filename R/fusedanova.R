@@ -23,16 +23,6 @@
 ##'
 ##' \item{\code{W}: } {numeric matrix; the matrix of weights needed if the \code{"personal"}
 ##' weights were selected. By default, a matrix with zero row and zero column.}
-##'
-##'	\item{\code{splits}:}{boolean; coding for enforcing split or nosplit algorithm.
-##' \itemize{%
-##' \item{\code{FALSE}: }{Forces the algorithm not to take the splits into account.}
-##' \item{\code{TRUE}: }{Forces the algorithm to take the splits into account even if the solution paths contains no split.}
-##' }
-##' If not set, the program applies the approriate depending on the choosen \code{weights}.
-##' }
-##' 
-##' \item{\code{epsilon}: }{numeric; tolerance parameter for numeric calculations when splits occur. By default, \eqn{10^-10}{eps}.}
 ##' 
 ##' \item{\code{checkargs}: }{logical; should arguments be checked to
 ##' (hopefully) avoid internal crashes? Default is \code{TRUE}.
@@ -99,13 +89,11 @@ fusedanova <- function(x, class = 1:length(x),
   args <- fusedANOVA_args(weights, standardize, list(...))
 
   ## check to partilly avoid crashes of th C++ code
-  if (args$checkargs) {
-    stopif(!is.numeric(x)                 , "x must be a numeric vector")
-    stopif(any(is.na(x))                  , "NA value in x not allowed.")
-    stopif(length(x) != length(class)     , "data and class dimensions do not match")
-    stopif(length(unique(class)) == 1     , "y has only one level.")
-  }
-
+  stopif(!is.numeric(x)                 , "x must be a numeric vector")
+  stopif(any(is.na(x))                  , "NA value in x not allowed.")
+  stopif(length(x) != length(class)     , "data and class dimensions do not match")
+  stopif(length(unique(class)) == 1     , "y has only one level.")
+  
   # conversion of class ot a factor
   if (!is.factor(class)) class <- as.factor(class)
   
@@ -145,10 +133,11 @@ calculatepath <- function(x, group, args) {
   xm <- xm[o] # sort from the smallest beta to the highest
   ngroup <- ngroup[o]
   xv <- xv[o]
-  
-  res  <- noSplit(xm, xv, ngroup, args)
 
-  return(list(table = res$res, order = o))
+  slopes <- get_slopes(xm, ngroup, xv, args$weights, args$gamma, args$W)  
+  res  <- fuse(xm, slopes, ngroup)
+
+  return(list(table = res, order = o))
   
 }
 
