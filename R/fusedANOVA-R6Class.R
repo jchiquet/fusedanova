@@ -31,7 +31,9 @@ fusedANOVA <-
       fusion = NULL  # path with fusion only
     ), 
     active = list(
-      penalties = function() {self$path$lambda}
+      penalties = function() {self$path$lambda},
+      fusionTable = function() {private$fusion}
+      
     )
   )
 

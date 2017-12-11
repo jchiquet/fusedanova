@@ -1,6 +1,4 @@
 #include <Rcpp.h>
-#include <stdlib.h>
-#include <vector>
 #include "nosplit.h"
 
 using namespace Rcpp ;
@@ -12,15 +10,19 @@ DataFrame fuse(NumericVector x, NumericVector slopes, NumericVector ngroup){
 	Group *G = maketree(&x[0], x.length(), &slopes[0], &ngroup[0]);
 
   int nrow = 2*G->len -1; // nb infos = K init gpes + K-1 fusions 
-  NumericVector beta(nrow),lambda(nrow), slope(nrow);
+  
+  NumericVector beta(nrow), lambda(nrow), slope(nrow);
   IntegerVector idown(nrow), iup(nrow);
+  
   int row=0;
-  add_results(G, &beta[0],&lambda[0],&slope[0],&idown[0],&iup[0],&row);
-  DataFrame L = DataFrame::create(Named("beta",beta),
-                                  Named("lambda",lambda),
-                                  Named("slope",slope),
-                                  Named("idown",idown),
-                                  Named("iup",iup));
+  
+  add_results(G, &beta[0], &lambda[0], &slope[0], &idown[0], &iup[0], &row);
+  
+  DataFrame L = DataFrame::create(Named("beta"  , beta),
+                                  Named("lambda", lambda),
+                                  Named("slope" , slope),
+                                  Named("idown" , idown),
+                                  Named("iup"   , iup));
 	
 	delete_tree(G); // delete the old tree for memory
 
