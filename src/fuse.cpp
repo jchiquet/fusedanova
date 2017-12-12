@@ -13,11 +13,7 @@ private:
   double lambda ;
   
 public:
-  Rule(int group1_, int group2_, double lambda_) {
-    group1 = group1_ ;
-    group2 = group2_ ;
-    lambda = lambda_ ;
-  } ;
+  Rule(int group1_, int group2_, double lambda_) : group1(group1_),  group2(group2_), lambda(lambda_) {} ;
 
   int get_group1() const {return group1 ;}  
   int get_group2() const {return group2 ;}  
@@ -25,126 +21,125 @@ public:
 
 };
 
-class RuleComparator
-{
+class RuleComparator {
 public:
-    int operator() (const Rule& r1, const Rule& r2) {
-        return r1.get_lambda() > r2.get_lambda();
-    }
+  int operator() (const Rule& r1, const Rule& r2) {
+    return r1.get_lambda() > r2.get_lambda();
+  }
 };
 
-double get_lambda(int group1, int group2, const DataFrame &table) {
+double get_lambda(int group1, int group2, const DataFrame& table) {
 
-  NumericVector slope    = table["slope"] ;
-  NumericVector beta     = table["beta"]   ;
-  NumericVector lambda   = table["lambda"] ;
+  NumericVector slope  = table["slope" ] ;
+  NumericVector beta   = table["beta"  ] ;
+  NumericVector lambda = table["lambda"] ;
 
   return((beta[group1] - beta[group2] - slope[group1] * lambda[group1] + slope[group2] * lambda[group2]) / (slope[group2] - slope[group1]));
 }
 
-void merge(int fusion, double lambda_fusion, int group1, int group2, DataFrame &table) {
+void merge(int fusion, double lambda_fusion, int group1, int group2, DataFrame& table) {
 
-  NumericVector slope    = table["slope"] ;
-  NumericVector beta     = table["beta"]   ;
-  NumericVector lambda   = table["lambda"] ;
-  IntegerVector i_low    = table["i_low"] ;
-  IntegerVector i_split  = table["i_split"] ;
-  IntegerVector i_high   = table["i_high"] ;
-  IntegerVector grp_low  = table["grp_low"] ;
-  IntegerVector grp_high = table["grp_high"] ;
-  IntegerVector grp_size = table["grp_size"] ;
-  LogicalVector active   = table["active"] ;
-  LogicalVector has_grp_low   = table["has_grp_low"] ;
-  LogicalVector has_grp_high   = table["has_grp_high"] ;
+  // pointers to columns of the DataFrame
+  NumericVector slope        = table["slope"   ] ;
+  NumericVector beta         = table["beta"    ] ;
+  NumericVector lambda       = table["lambda"  ] ;
+  IntegerVector i_low        = table["i_low"   ] ;
+  IntegerVector i_split      = table["i_split" ] ;
+  IntegerVector i_high       = table["i_high"  ] ;
+  IntegerVector grp_low      = table["grp_low" ] ;
+  IntegerVector grp_high     = table["grp_high"] ;
+  IntegerVector grp_size     = table["grp_size"] ;
+  LogicalVector active       = table["active"  ] ;
+  LogicalVector has_grp_low  = table["has_grp_low"] ;
+  LogicalVector has_grp_high = table["has_grp_high"] ;
 
-  lambda[fusion] = lambda_fusion ;
-  
+  // Updating the fields of the DataFrame of the fusing group
+  lambda[fusion]   = lambda_fusion ;
   grp_size[fusion] = grp_size[group1] + grp_size[group2] ;
-  
-  slope[fusion]  = (grp_size[group1] * slope[group1] + grp_size[group2] * slope[group2]) / grp_size[fusion] ;
-  
-  beta[fusion] = beta[group1] + (lambda_fusion - lambda[group1]) * slope[group1] ;
+  slope[fusion]    = (grp_size[group1] * slope[group1] + grp_size[group2] * slope[group2]) / grp_size[fusion] ;
+  beta[fusion]     = beta[group1] + (lambda_fusion - lambda[group1]) * slope[group1] ;
   
   // update i_low, i_high, i_split
   if(i_low[group1] < i_low[group2]) {
-    i_split[fusion]  = i_high[group1];
-    i_low[fusion]    = i_low[group1];
-    i_high[fusion]   = i_high[group2];
-    grp_low[fusion]  = grp_low[group1];
-    grp_high[fusion] = grp_high[group2];
-    has_grp_low[fusion] = has_grp_low[group1];
+    i_split     [fusion] = i_high      [group1];
+    i_low       [fusion] = i_low       [group1];
+    grp_low     [fusion] = grp_low     [group1];
+    has_grp_low [fusion] = has_grp_low [group1];
+    i_high      [fusion] = i_high      [group2];
+    grp_high    [fusion] = grp_high    [group2];
     has_grp_high[fusion] = has_grp_high[group2];
   } else {
-    i_split[fusion] = i_high[group2]; 
-    i_low[fusion] = i_low[group2];
-    i_high[fusion] = i_high[group1];
-    grp_low[fusion] = grp_low[group2];
-    grp_high[fusion] = grp_high[group1];
-    has_grp_low[fusion] = has_grp_low[group2];
+    i_split     [fusion] = i_high      [group2]; 
+    i_low       [fusion] = i_low       [group2];
+    grp_low     [fusion] = grp_low     [group2];
+    has_grp_low [fusion] = has_grp_low [group2];
+    i_high      [fusion] = i_high      [group1];
+    grp_high    [fusion] = grp_high    [group1];
     has_grp_high[fusion] = has_grp_high[group1];
   }
 
   active[fusion] = true ;
   active[group1] = false ;
-  active[group2] = false ;
+
+  //  active[group2] = false ;
   
-  std::cout << " beta " << beta[fusion] 
-            << " lambda " << lambda[fusion] 
-            << " i_low " << i_low[fusion]
-            << " i_high " << i_high[fusion]
-            << " i_split " << i_split[fusion]
-            << " grp_low " << grp_low[fusion]
-            << " grp_high " << grp_high[fusion] << std::endl ;
+  // std::cout << " beta     " << beta[fusion]     << "\t" 
+  //           << " lambda   " << lambda[fusion]   << "\t" 
+  //           << " i_low    " << i_low[fusion]    << "\t" 
+  //           << " i_high   " << i_high[fusion]   << "\t" 
+  //           << " i_split  " << i_split[fusion]  << "\t" 
+  //           << " grp_low  " << grp_low[fusion]  << "\t" 
+  //           << " grp_high " << grp_high[fusion] << std::endl ;
 }
 
 //' @export
 // [[Rcpp::export]]
-DataFrame fuse(NumericVector initial_beta, NumericVector initial_slope, NumericVector initial_grp_size) {
+DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
 
   // initialize  
-  int n = initial_beta.size() ;
-  NumericVector lambda  (2 * n - 1) ; 
-  NumericVector beta    (2 * n - 1) ;
-  NumericVector slope   (2 * n - 1) ;
-  IntegerVector i_low   (2 * n - 1) ;
-  IntegerVector i_split (2 * n - 1) ;
-  IntegerVector i_high  (2 * n - 1) ;
-  IntegerVector grp_low (2 * n - 1) ;
-  IntegerVector grp_high(2 * n - 1) ;
-  IntegerVector grp_size(2 * n - 1) ;
-  LogicalVector active  (2 * n - 1) ;
-  LogicalVector has_grp_low (2 * n - 1) ;
+  int n = grp_size0.size() ;
+  NumericVector lambda       (2 * n - 1) ; 
+  NumericVector beta         (2 * n - 1) ;
+  NumericVector slope        (2 * n - 1) ;
+  IntegerVector i_low        (2 * n - 1) ;
+  IntegerVector i_split      (2 * n - 1) ;
+  IntegerVector i_high       (2 * n - 1) ;
+  IntegerVector grp_low      (2 * n - 1) ;
+  IntegerVector grp_high     (2 * n - 1) ;
+  IntegerVector grp_size     (2 * n - 1) ;
+  LogicalVector active       (2 * n - 1) ;
+  LogicalVector has_grp_low  (2 * n - 1) ;
   LogicalVector has_grp_high (2 * n - 1) ;
   
-  DataFrame table = DataFrame::create(Named("lambda")   = lambda  ,
-                                      Named("beta")     = beta    ,
-                                      Named("slope")    = slope   ,
-                                      Named("i_low")    = i_low   ,
-                                      Named("i_split")  = i_split ,
-                                      Named("i_high")   = i_high  ,
-                                      Named("grp_low")  = grp_low ,
-                                      Named("grp_high") = grp_high,
+  DataFrame table = DataFrame::create(Named("lambda")       = lambda      ,
+                                      Named("beta")         = beta        ,
+                                      Named("slope")        = slope       ,
+                                      Named("i_low")        = i_low       ,
+                                      Named("i_high")       = i_high      ,
+                                      Named("i_split")      = i_split     ,
+                                      Named("grp_low")      = grp_low     ,
+                                      Named("grp_high")     = grp_high    ,
                                       Named("has_grp_low")  = has_grp_low ,
                                       Named("has_grp_high") = has_grp_high,
-                                      Named("grp_size") = grp_size,
-                                      Named("active")   = active  ) ;
+                                      Named("grp_size")     = grp_size    ,
+                                      Named("active")       = active      ) ;
     
   for (int k=0; k < n; k++) {
-    int index = n - 1 + k;
-    lambda[index]   = 0;
-    beta[index]     = initial_beta[k];
-    slope[index]    = initial_slope[k];
+    int index = k + n - 1;
+    lambda[index]   = 0.0;
+    beta[index]     = beta0[k];
+    slope[index]    = slope0[k];
     i_low[index]    = k;
     i_split[index]  = k;
     i_high[index]   = k;
-    grp_size[index] = initial_grp_size[k] ;
+    grp_size[index] = grp_size0[k] ;
     active[index]   = true;
     if (k == 0) {
       has_grp_low[index] = false ;
       grp_low[index] = -1;
     } else {
       has_grp_low[index] = true ;
-      grp_low[index]  = index - 1;
+      grp_low[index] = index - 1;
     }
     if (k == (n-1)) {
       has_grp_high[index] = false ;
@@ -158,19 +153,13 @@ DataFrame fuse(NumericVector initial_beta, NumericVector initial_slope, NumericV
   priority_queue <Rule, vector<Rule>, RuleComparator > myMinHeap ;
   
   for (int k=0; k < (n-1); k++) {
-    int grp1 = n - 1 + k;
-    int grp2 = grp1 + 1;
-    myMinHeap.push(Rule(grp1, grp2, get_lambda(grp1, grp2, table)));
+    myMinHeap.push(Rule(k + n - 1, k + n, get_lambda(k + n - 1, k + n, table)));
   }
   
-  print(table) ;
-    
   for (int k=(n-2); k >= 0; k--) {
     
-    // std::cout << "\nk = " << k ;
-    
     // find the next active rule
-    while ( (!(active[myMinHeap.top().get_group1()] & active[myMinHeap.top().get_group2()]))) {
+    while ( (!active[myMinHeap.top().get_group1()]) | (!active[myMinHeap.top().get_group2()])) {
       myMinHeap.pop() ;
       R_CheckUserInterrupt();
     }
@@ -190,7 +179,12 @@ DataFrame fuse(NumericVector initial_beta, NumericVector initial_slope, NumericV
     }
   }
 
-  return(table) ;
+  return(DataFrame::create(Named("beta"  , beta),
+                           Named("lambda", lambda),
+                           Named("down"  , i_low + 1),
+                           Named("high"  , i_high + 1),
+                           Named("split" , i_split + 1)));
+  
 }
 
 //' @export

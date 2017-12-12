@@ -62,9 +62,8 @@ fusedANOVA$set("public", "get_path",
 
     slopes <- get_slopes(mean_k[self$order], private$nk[self$order], var_k[self$order], self$weighting, 1, matrix(0,0,0) )
     
-    self$path  <- fuse(mean_k[self$order], slopes, private$nk[self$order])
-
-    private$fusion <- self$path %>% filter(idown != iup) %>% arrange(desc(lambda))
+    self$path <- fuse(mean_k[self$order], slopes, private$nk[self$order]) %>%
+      filter(down != high) %>% arrange(desc(lambda))
       
     invisible(self)
   }

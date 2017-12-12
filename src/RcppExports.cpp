@@ -6,15 +6,15 @@
 using namespace Rcpp;
 
 // fuse
-DataFrame fuse(NumericVector initial_beta, NumericVector initial_slope, NumericVector initial_grp_size);
-RcppExport SEXP _fusedanova_fuse(SEXP initial_betaSEXP, SEXP initial_slopeSEXP, SEXP initial_grp_sizeSEXP) {
+DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0);
+RcppExport SEXP _fusedanova_fuse(SEXP beta0SEXP, SEXP slope0SEXP, SEXP grp_size0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type initial_beta(initial_betaSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type initial_slope(initial_slopeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type initial_grp_size(initial_grp_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(fuse(initial_beta, initial_slope, initial_grp_size));
+    Rcpp::traits::input_parameter< NumericVector >::type beta0(beta0SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type slope0(slope0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type grp_size0(grp_size0SEXP);
+    rcpp_result_gen = Rcpp::wrap(fuse(beta0, slope0, grp_size0));
     return rcpp_result_gen;
 END_RCPP
 }
