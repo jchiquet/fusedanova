@@ -256,35 +256,55 @@ s <- function(x1, x2, alpha=1) {
 #   return(S)
 # }
 
-make.sparse.similarity <- function(my.data, similarity, cutoff = 0.2){
-  N <- nrow(my.data)
-  S <- matrix(rep(NA,N^2), ncol=N)
-  res = lapply(1:N, FUN = function(x){
-    row_x = rep(NA, N)
-    for(j in x:N) {
-      row_x[j] =  similarity(my.data[x,], my.data[j,])
-    }
-    return(row_x)
-  })
-  S = do.call(rbind, res)
-  S[lower.tri(S, diag = FALSE)] <- t(S)[lower.tri(S, diag = FALSE)]
-  S[abs(S)<cutoff] <- 0
-  S = as(S, "sparseMatrix")
-  return(S)
-}
+# make.sparse.similarity <- function(my.data, similarity, cutoff = 0.2){
+#   N <- nrow(my.data)
+#   S <- matrix(rep(NA,N^2), ncol=N)
+#   res = lapply(1:N, FUN = function(x){
+#     row_x = rep(NA, N)
+#     for(j in x:N) {
+#       row_x[j] =  similarity(my.data[x,], my.data[j,])
+#     }
+#     return(row_x)
+#   })
+#   S = do.call(rbind, res)
+#   S[lower.tri(S, diag = FALSE)] <- t(S)[lower.tri(S, diag = FALSE)]
+#   S[abs(S)<cutoff] <- 0
+#   S = as(S, "sparseMatrix")
+#   return(S)
+# }
+# 
+# make.sparse.similarity <- function(my.data, similarity, alpha, cutoff = 0.2){
+#   N <- nrow(my.data)
+#   # S <- matrix(rep(0,N^2), ncol=N)
+#   res = lapply(1:N, FUN = function(x){
+#     row_x = rep(0, N)
+#     for(j in x:N) {
+#       row_x[j] =  similarity(my.data[x,], my.data[j,], alpha)
+#     }
+#     return(row_x)
+#   })
+#   S = do.call(rbind, res)
+#   # S[lower.tri(S, diag = FALSE)] <- t(S)[lower.tri(S, diag = FALSE)]
+#   S[abs(S)<cutoff] <- 0
+#   S = as(S, "sparseMatrix")
+#   return(S)
+# }
 
-make.similarity <- function(my.data, similarity, alpha) {
+make.similarity <- function(my.data, similarity, alpha, lower = FALSE, sparse = TRUE, cutoff = NULL) {
   N <- nrow(my.data)
-  S <- matrix(rep(NA,N^2), ncol=N)
+  S <- matrix(rep(0,N^2), ncol=N)
+  alpha_new = alpha/sd(unlist(my.data))^2
   res = lapply(1:N, FUN = function(x){
-    row_x = rep(NA, N)
+    row_x = rep(0, N)
     for(j in x:N) {
-      row_x[j] =  similarity(my.data[x,], my.data[j,], alpha)
+      row_x[j] =  similarity(my.data[x,], my.data[j,], alpha_new)
     }
     return(row_x)
   })
   S = do.call(rbind, res)
-  S[lower.tri(S, diag = FALSE)] <- t(S)[lower.tri(S, diag = FALSE)]
+  if(!is.null(cutoff)) S[abs(S)<cutoff] <- 0
+  if(lower) S[lower.tri(S, diag = FALSE)] <- t(S)[lower.tri(S, diag = FALSE)]
+  if(sparse) S = as(S, "sparseMatrix")
   return(S)
 }
 
@@ -320,38 +340,53 @@ AgregationArbres.wrapper <- function(Data, verb = TRUE, esp = 1000,
                                      use_eigs = TRUE,
                                      # use_sym = FALSE,
                                      parallel. = TRUE,
-                                     alpha = 1,
+                                     alpha = 1/2,
                                      nu = NULL
                                      # nv = 0
                                      
 ){
-  library("plyr") ; library("fusedanova"); library("parallel") ; library("nFactors") ; library(rARPACK);
+  library("plyr") ; library("fusedanova"); library("parallel") ; library(rARPACK); library(PRIMME);
   # library(rsvd)
-  # Data = t(data_matrix)
+  Data = t(data_matrix)
   # cutoff = NULL
   p = ncol(Data)
   n = nrow(Data)
+  # alpha = 1/2
   
   if(is.null(nu)) nu = n
   if(is.null(k_spectral)){k_spectral = ceiling(p/10)}
   
   if(spectral){
     # Data = t(data_matrix)
-    S <- make.similarity(Data, s, alpha) 
+    S <- make.similarity(Data, s, alpha, lower = TRUE, sparse = FALSE, cutoff = NULL)  
+    eS = eigen(S, only.values = TRUE)$values
+    to_delete = sum(abs(eS)<=1e-16)
     if(use_eigs){
-      # print(det(diag(rowSums(S))-S))
-      if(abs(det(diag(rowSums(S))-S))<=1e-5 || det(diag(rowSums(S))-S)==Inf 
-         ||det(diag(rowSums(S))-S)==-Inf){
-        message("det(diag(rowSums(S))-S) is either too small or too high, using other stuff instead")
-        Z = eigs_sym((diag(rowSums(S))-S)%*%t(diag(rowSums(S))-S), 
-                     k = k_spectral, which = "SM")$vectors
-      }else{
-        Z = eigs_sym(diag(rowSums(S))-S, k = k_spectral, which = "SM")$vectors
-      }
+      # if(abs(det(diag(rowSums(S))-S))<=1e-5 || det(diag(rowSums(S))-S)==Inf||det(diag(rowSums(S))-S)==-Inf){
+      #   message("det(diag(rowSums(S))-S) is either too small or too high, trying something else")
+      #   # S <- chol(S)
+      #   # Z = eigs_sym((crossprod(diag(rowSums(S))-S)), k = k_spectral, which = "SM")$vectors
+      #   # Z = eigs_sym(crossprod(diag(rowSums(S))-S), k = k_spectral, which = "SM")$vectors
+      #   # S = crossprod(t(Data))
+      #   # k_spectral = k_spectral+10
+      #   Z = eigs_sym((diag(rowSums(S))-S),  k = p, which = "SM")$vectors
+      # }else{
+        # S <- make.sparse.similarity(Data, s, alpha, cutoff = 0)
+        # Z = eigs_sym(diag(rowSums(S+t(S))-S), k = k_spectral, which = "SM")$vectors
+        Z = rARPACK::eigs_sym((diag(rowSums(S))-S), k = p, which = "SM")$vectors
+      # compute p vectors instead of k_spectral because some of the smallest might not converge. 
+      # Z = PRIMME::eigs_sym((diag(rowSums(S))-S), NEig = p, which = "SA")$vectors 
+        # PRIMME = plus long que rARPACK et donne de moins bons resultats
+      # }
+        # if(to_delete>0) Z = Z[,-((ncol(Z)-to_delete+1):ncol(Z))]
+      Z = Z[, (ncol(Z)-k_spectral+1):ncol(Z)]
     }
     else{
-      L_SVD = svd(diag(rowSums(S))-S, nu = nu, nv = 0)
-      Z = L_SVD$u[,(ncol(L_SVD$u)-k_spectral+1):ncol(L_SVD$u)]
+      L_SVD = svd(diag(rowSums(S))-S, nu = nu, nv = 0)$u
+      # Z = L_SVD$u[,(ncol(L_SVD$u)-k_spectral+1):ncol(L_SVD$u)]
+      # L_SVD = PRIMME::svds(diag(rowSums(S))-S, p, which = "S")$u # random... 
+      # if(to_delete>0) L_SVD = L_SVD[,-((ncol(L_SVD)-to_delete+1):ncol(L_SVD))]
+      Z = L_SVD[,(ncol(L_SVD)-k_spectral+1):ncol(L_SVD)]
     }
     
     rm(S)
@@ -388,7 +423,7 @@ AgregationArbres.wrapper <- function(Data, verb = TRUE, esp = 1000,
   ReunionRegles <- do.call("rbind",ListeTablesRegles)
   ReunionRegles <- ReunionRegles[order(ReunionRegles[,lambdaCol], 
                                        decreasing = TRUE),]
-
+  
   NumeroGroupes <- rep(1,n)
   NumGroupeCourant <- 1
   Groupes <- list()
@@ -521,8 +556,8 @@ Recup_hier = function(DataVect, resFA, verb = FALSE, esp = 1000){
   best_group = cut_tree[, best_cut]
   
   return(list(Cluster = Cluster, BIC_dim_all = BIC_dim_all, best_cut = best_cut, 
-         best_group = best_group, Regles = ReglesActives,
-         Orders = Order, ReunionRegles = ReunionRegles))
+              best_group = best_group, Regles = ReglesActives,
+              Orders = Order, ReunionRegles = ReunionRegles))
 } 
 
 #####################################################-

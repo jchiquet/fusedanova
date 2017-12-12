@@ -135,7 +135,7 @@ calculatepath <- function(x, group, args) {
   xv <- xv[o]
 
   slopes <- get_slopes(xm, ngroup, xv, args$weights, args$gamma, args$W)  
-  res  <- fuse(xm, slopes, ngroup)
+  res  <- fuse_old(xm, slopes, ngroup)
 
   return(list(table = res, order = o))
   

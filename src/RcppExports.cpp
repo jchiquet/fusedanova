@@ -6,15 +6,28 @@
 using namespace Rcpp;
 
 // fuse
-DataFrame fuse(NumericVector x, NumericVector slopes, NumericVector ngroup);
-RcppExport SEXP _fusedanova_fuse(SEXP xSEXP, SEXP slopesSEXP, SEXP ngroupSEXP) {
+DataFrame fuse(NumericVector initial_beta, NumericVector initial_slope, NumericVector initial_grp_size);
+RcppExport SEXP _fusedanova_fuse(SEXP initial_betaSEXP, SEXP initial_slopeSEXP, SEXP initial_grp_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type initial_beta(initial_betaSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type initial_slope(initial_slopeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type initial_grp_size(initial_grp_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(fuse(initial_beta, initial_slope, initial_grp_size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fuse_old
+DataFrame fuse_old(NumericVector x, NumericVector slopes, NumericVector ngroup);
+RcppExport SEXP _fusedanova_fuse_old(SEXP xSEXP, SEXP slopesSEXP, SEXP ngroupSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type slopes(slopesSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type ngroup(ngroupSEXP);
-    rcpp_result_gen = Rcpp::wrap(fuse(x, slopes, ngroup));
+    rcpp_result_gen = Rcpp::wrap(fuse_old(x, slopes, ngroup));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -52,6 +65,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_fusedanova_fuse", (DL_FUNC) &_fusedanova_fuse, 3},
+    {"_fusedanova_fuse_old", (DL_FUNC) &_fusedanova_fuse_old, 3},
     {"_fusedanova_get_clustering", (DL_FUNC) &_fusedanova_get_clustering, 5},
     {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 6},
     {NULL, NULL, 0}
