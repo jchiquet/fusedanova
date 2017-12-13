@@ -158,12 +158,15 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
   for (int k = n-1; k < (2*n-1);  k++) {
     
     // find the next active rule
-    while (!myMinHeap.top().is_active(active)) {
+    while (!myMinHeap.top().is_active(active) & !myMinHeap.empty()) {
       myMinHeap.pop() ;
       R_CheckUserInterrupt();
-      if (myMinHeap.empty())
-        std::cout << "DIANTRE: no more active rule (with both group actives...)" << std::endl;
     }
+    if (myMinHeap.empty()) {
+      std::cout << "DIANTRE: no more active rule (with both group actives...)" << std::endl;
+      break;
+    }
+    
     Rule rule_ = myMinHeap.top();
     std::cout << "fusion = " << k - (n-1) + 1 
               << ", heapSize = " << myMinHeap.size() 
