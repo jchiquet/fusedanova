@@ -56,35 +56,30 @@ void merge(int fusion, double lambda_fusion, int group1, int group2, DataFrame& 
   LogicalVector has_grp_high = table["has_grp_high"] ;
 
   // Updating the fields of the DataFrame of the fusing group
-  lambda[fusion]   = lambda_fusion ;
+  lambda  [fusion] = lambda_fusion ;
   grp_size[fusion] = grp_size[group1] + grp_size[group2] ;
-  slope[fusion]    = (grp_size[group1] * slope[group1] + grp_size[group2] * slope[group2]) / grp_size[fusion] ;
-  beta[fusion]     = beta[group1] + (lambda_fusion - lambda[group1]) * slope[group1] ;
-  
-  // update i_low, i_high, i_split
+  slope   [fusion] = (grp_size[group1] * slope[group1] + grp_size[group2] * slope[group2]) / grp_size[fusion] ;
+  beta    [fusion] = beta[group1] + (lambda_fusion - lambda[group1]) * slope[group1] ;
   if(i_low[group1] < i_low[group2]) {
     i_split     [fusion] = i_high      [group1];
     i_low       [fusion] = i_low       [group1];
-    grp_low     [fusion] = grp_low     [group1];
-    has_grp_low [fusion] = has_grp_low [group1];
     i_high      [fusion] = i_high      [group2];
+    grp_low     [fusion] = grp_low     [group1];
     grp_high    [fusion] = grp_high    [group2];
+    has_grp_low [fusion] = has_grp_low [group1];
     has_grp_high[fusion] = has_grp_high[group2];
-    
   } else {
     i_split     [fusion] = i_high      [group2]; 
     i_low       [fusion] = i_low       [group2];
-    grp_low     [fusion] = grp_low     [group2];
-    has_grp_low [fusion] = has_grp_low [group2];
     i_high      [fusion] = i_high      [group1];
+    grp_low     [fusion] = grp_low     [group2];
     grp_high    [fusion] = grp_high    [group1];
-  
+    has_grp_low [fusion] = has_grp_low [group2];
     has_grp_high[fusion] = has_grp_high[group1];
-
   }
 
-  // active[group1] = false ;
-  //  active[group2] = false ;
+  active[group1] = false ;
+  active[group2] = false ;
   active[fusion] = true ;
 
   // std::cout << " beta     " << beta[fusion]     << "\t" 
@@ -129,56 +124,61 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
                                       Named("active")       = active      ) ;
     
   for (int k=0; k < n; k++) {
-    int index = k + n - 1;
-    lambda[index]   = 0.0;
-    beta[index]     = beta0[k];
-    slope[index]    = slope0[k];
-    i_low[index]    = k;
-    i_split[index]  = k;
-    i_high[index]   = k;
-    grp_size[index] = grp_size0[k] ;
-    active[index]   = true;
+    lambda[k]   = 0.0;
+    beta[k]     = beta0[k];
+    slope[k]    = slope0[k];
+    i_low[k]    = k;
+    i_split[k]  = k;
+    i_high[k]   = k;
+    grp_size[k] = grp_size0[k] ;
+    active[k]   = true;
     if (k == 0) {
-      has_grp_low[index] = false ;
-      grp_low[index] = -1;
+      has_grp_low[k] = false ;
+      grp_low[k] = -1;
     } else {
-      has_grp_low[index] = true ;
-      grp_low[index] = index - 1;
+      has_grp_low[k] = true ;
+      grp_low[k] = k - 1;
     }
     if (k == (n-1)) {
-      has_grp_high[index] = false ;
-      grp_high[index] = -1 ;
+      has_grp_high[k] = false ;
+      grp_high[k] = -1 ;
     } else {
-      has_grp_high[index] = true ;
-      grp_high[index] = index + 1;
+      has_grp_high[k] = true ;
+      grp_high[k] = k + 1;
     }
   }
   
-  priority_queue <Rule, vector<Rule>, RuleComparator > myMinHeap ;
+  priority_queue <Rule, vector<Rule>, RuleComparator> myMinHeap ;
   
+  // first round of fusion between the n-1 pairs of successive groups
   for (int k=0; k < (n-1); k++) {
-    myMinHeap.push(Rule(k + n - 1, k + n, get_lambda(k + n - 1, k + n, table)));
+    myMinHeap.push(Rule(k, k + 1, get_lambda(k, k + 1, table)));
   }
   
-  for (int k=(n-2); k >= 0; k--) {
+  for (int k = n-1; k < (2*n-1);  k++) {
     
     // find the next active rule
     while (!myMinHeap.top().is_active(active)) {
       myMinHeap.pop() ;
       R_CheckUserInterrupt();
+      if (myMinHeap.empty())
+        std::cout << "DIANTRE: no more active rule (with both group actives...)" << std::endl;
     }
     Rule rule_ = myMinHeap.top();
+    std::cout << "fusion = " << k - (n-1) + 1 
+              << ", heapSize = " << myMinHeap.size() 
+              << ", active groups = " << sum(active) << std::endl;
     myMinHeap.pop() ;
-    
+
     // merge the two groups and unactivate the fused groups
     merge(k, rule_.get_lambda(), rule_.get_group1(), rule_.get_group2(), table) ;
-    
-    // get new rules an add them to the heap
-    if (has_grp_low[k]) {
+
+    // get new rules an add them to the queue
+    if (has_grp_low[k] & active[grp_low[k]]) {
       myMinHeap.push(Rule(grp_low[k], k, get_lambda(grp_low[k], k, table)));
     }
     
-    if (has_grp_high[k]) {
+    if (has_grp_high[k] & active[grp_high[k]]) {
       myMinHeap.push(Rule(k, grp_high[k], get_lambda(k, grp_high[k], table)));
     }
   }
