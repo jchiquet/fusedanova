@@ -9,3 +9,8 @@ fa1_path <- fa1_path[order(fa1_path$lambda, decreasing = TRUE), ]
 
 fa2 <- fusedanova2(aves$weight, aves$family)
 fa2_path <- fa2$path
+
+## divergence ...
+print(tail(fa2_path, 8))
+
+print(tail(fa1_path, 8))

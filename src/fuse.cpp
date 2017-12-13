@@ -162,15 +162,14 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
       myMinHeap.pop() ;
       R_CheckUserInterrupt();
     }
+    std::cout << "fusion = " << k - (n-1) + 1 
+              << ", heapSize = " << myMinHeap.size() 
+              << ", active groups = " << sum(active) << std::endl;
     if (myMinHeap.empty()) {
       std::cout << "DIANTRE: no more active rule (with both group actives...)" << std::endl;
       break;
     }
-    
     Rule rule_ = myMinHeap.top();
-    std::cout << "fusion = " << k - (n-1) + 1 
-              << ", heapSize = " << myMinHeap.size() 
-              << ", active groups = " << sum(active) << std::endl;
     myMinHeap.pop() ;
 
     // merge the two groups and unactivate the fused groups
@@ -188,8 +187,11 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
 
   return(DataFrame::create(Named("beta"  , beta),
                            Named("lambda", lambda),
+                           Named("slope" , slope),
                            Named("down"  , i_low + 1),
                            Named("high"  , i_high + 1),
+                           Named("grp_down"  , grp_low + 1),
+                           Named("grp_high"  , grp_high + 1),
                            Named("split" , i_split + 1)));
   
 }
