@@ -18,7 +18,9 @@ public:
   int get_group1() const {return group1 ;}  
   int get_group2() const {return group2 ;}  
   double get_lambda() const {return lambda ;}
-
+  bool is_active(const LogicalVector& active) const {
+    return(active[group1] & active[group2]);
+  }
 };
 
 class RuleComparator {
@@ -68,6 +70,7 @@ void merge(int fusion, double lambda_fusion, int group1, int group2, DataFrame& 
     i_high      [fusion] = i_high      [group2];
     grp_high    [fusion] = grp_high    [group2];
     has_grp_high[fusion] = has_grp_high[group2];
+    
   } else {
     i_split     [fusion] = i_high      [group2]; 
     i_low       [fusion] = i_low       [group2];
@@ -75,14 +78,15 @@ void merge(int fusion, double lambda_fusion, int group1, int group2, DataFrame& 
     has_grp_low [fusion] = has_grp_low [group2];
     i_high      [fusion] = i_high      [group1];
     grp_high    [fusion] = grp_high    [group1];
+  
     has_grp_high[fusion] = has_grp_high[group1];
+
   }
 
-  active[fusion] = true ;
-  active[group1] = false ;
-
+  // active[group1] = false ;
   //  active[group2] = false ;
-  
+  active[fusion] = true ;
+
   // std::cout << " beta     " << beta[fusion]     << "\t" 
   //           << " lambda   " << lambda[fusion]   << "\t" 
   //           << " i_low    " << i_low[fusion]    << "\t" 
@@ -159,7 +163,7 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
   for (int k=(n-2); k >= 0; k--) {
     
     // find the next active rule
-    while ( (!active[myMinHeap.top().get_group1()]) | (!active[myMinHeap.top().get_group2()])) {
+    while (!myMinHeap.top().is_active(active)) {
       myMinHeap.pop() ;
       R_CheckUserInterrupt();
     }
@@ -168,7 +172,7 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
     
     // merge the two groups and unactivate the fused groups
     merge(k, rule_.get_lambda(), rule_.get_group1(), rule_.get_group2(), table) ;
-
+    
     // get new rules an add them to the heap
     if (has_grp_low[k]) {
       myMinHeap.push(Rule(grp_low[k], k, get_lambda(grp_low[k], k, table)));
