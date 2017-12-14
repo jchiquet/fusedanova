@@ -8,7 +8,7 @@
 ##' @param class vector or factor giving the initial class of each individual. If missing, 
 ##' \code{1:length(x)} is used (clustering mode with one individual per class).
 ##'
-##' @parma weights character; which type of weights is supposed to be used.
+##' @param weights character; which type of weights is supposed to be used.
 ##' The supported weights are: \code{"default"}, \code{"laplace"}, \code{"gaussian"},
 ##'  \code{"adaptive"}, \code{"naivettest"}, \code{"ttest"}, \code{"welch"} and \code{"personal"}. 
 ##' See details below. By default, its value is \code{"default"}.

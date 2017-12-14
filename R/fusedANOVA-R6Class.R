@@ -3,7 +3,6 @@
 ##' @description
 ##'
 ##' @importFrom R6 R6Class
-##' @importFrom dplyr arrange desc filter %>%
 ##' @export
 ##' 
 fusedANOVA <-
@@ -61,9 +60,7 @@ fusedANOVA$set("public", "get_path",
     self$order <- order(mean_k)
 
     slopes <- get_slopes(mean_k[self$order], private$nk[self$order], var_k[self$order], self$weighting, 1, matrix(0,0,0) )
-    
-    self$path <- fuse(mean_k[self$order], slopes, private$nk[self$order]) %>%
-      filter(down != high) %>% arrange(desc(lambda))
+    self$path <- fuse(mean_k[self$order], slopes, private$nk[self$order]) 
       
     invisible(self)
   }

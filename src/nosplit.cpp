@@ -50,7 +50,7 @@ Group* maketree(double* x ,int K, double* sl, double* ngroup){
 		gj =*g_it_next;
 		if(gi->beta == gj->beta){ // if two groups have same initial Beta
 			//then merge the 2
-		
+
 			// Create the new group
 			g = new Group;
 			// and set all his attributes
@@ -130,9 +130,9 @@ Group* fuse_groups(Groups myGroups){
 			g_it_next++;
 			gj=*g_it_next; // gi and gj are the 2 fusing groups
 
-			//print_events(events);
-			//print_groups(myGroups);
-		
+			// print_events(events);
+			// print_groups(myGroups);
+			 
 			// Create the new group
 			g = new Group;
 			// and set all hist attributes
