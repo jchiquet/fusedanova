@@ -1,5 +1,4 @@
 library(fusedanova)
-source("inst/functions_Audrey.R")
 data(aves)
 
 fa1 <- fusedanova(aves$weight, aves$family)

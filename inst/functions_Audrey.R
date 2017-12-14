@@ -160,8 +160,8 @@ CreationMatriceMerge <- function(n,Groupes, NumeroGroupes){
   MatriceMerge[ind.Inf.np1]  <- -MatriceMerge[ind.Inf.np1]
   MatriceMerge[!ind.Inf.np1] <- MatriceMerge[!ind.Inf.np1] -n
   
-  # Height <- Final[,LambdaCol][Final[,LambdaCol]!=0]
-  Height <- Final[-1,LambdaCol] # Modification : 30/11/17
+  Height <- Final[,LambdaCol][Final[,LambdaCol]!=0]
+  ##Height <- Final[-1,LambdaCol] # Modification : 30/11/17
   return(list(MatriceMerge= MatriceMerge, Height = Height))
 }
 
@@ -617,4 +617,42 @@ LogLikelihoodDim <- function(data, group){
 
 BIC <- function(loglikelihood, nbGroupes, n, p){
   return(-2*loglikelihood+log(n)*p*nbGroupes)
+}
+
+
+hclust.one.dim <- function(n, fa1) {
+  
+  Order <- list(fa1@result[[1]]$order)
+  fusion_rules <- RecuperationRegles(n, fa1)
+
+  NumeroGroupes <- rep(1,n)
+  NumGroupeCourant <- 1
+  Groupes <- list()
+  Groupes[[1]] <- matrix(c(1,n,0,0,0,0), 1,6)
+  IndiceDeRegle <- 1
+  ReglesActives <- matrix(0, ncol = 6, nrow = n-1)
+  compteur <- 1
+  
+  while(NumGroupeCourant < n && IndiceDeRegle <= nrow(fusion_rules)){
+    GroupesActuels <- Groupes[[length(Groupes)]]
+    RegleCourante <- fusion_rules[IndiceDeRegle,]
+    Resultat <- TraitementRegle(RegleCourante, NumGroupeCourant, NumeroGroupes,
+                                Order, GroupesActuels)
+    if(Resultat$Split){
+      Groupes[[length(Groupes)+1]] <- Resultat$GroupesActuels
+      NumGroupeCourant <- Resultat$NumGroupeCourant
+      NumeroGroupes <- Resultat$NumeroGroupes
+      ReglesActives[compteur,] <- RegleCourante
+      compteur <- compteur+1
+    }
+    IndiceDeRegle <- IndiceDeRegle+1
+  }
+  
+  Ordre <- OrdreIndividus(n, Groupes, NumeroGroupes)
+  out <- CreationMatriceMerge(n, Groupes,NumeroGroupes)
+ 
+  height <- sort(unique(fa1@result[[1]]$table$lambda))[-1]
+  Cluster <- list(merge = out$MatriceMerge, height = height, order = Ordre)
+  class(Cluster) <- "hclust"
+  Cluster
 }
