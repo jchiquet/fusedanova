@@ -14,3 +14,11 @@ fa2_path <- fa2$path
 print(tail(fa2_path, 8))
 
 print(tail(fa1_path, 8))
+
+
+
+x <- sort(rnorm(10))
+w <- 1:10
+
+fa1 <- fusedanova(x, w)
+fa2 <- fusedanova2(x, w)

@@ -77,6 +77,10 @@ void merge(int fusion, double lambda_fusion, int group1, int group2, DataFrame& 
     has_grp_low [fusion] = has_grp_low [group2];
     has_grp_high[fusion] = has_grp_high[group1];
   }
+  
+  // Updating neighbors
+  if(has_grp_low [fusion])  grp_high[  grp_low [fusion] ] = fusion;
+  if(has_grp_high [fusion])  grp_low[ grp_high [fusion] ] = fusion;
 
   active[group1] = false ;
   active[group2] = false ;
