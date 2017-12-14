@@ -180,11 +180,11 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
     merge(k, rule_.get_lambda(), rule_.get_group1(), rule_.get_group2(), table) ;
 
     // get new rules an add them to the queue
-    if (has_grp_low[k] & active[grp_low[k]]) {
+    if (has_grp_low[k]) { //& active[grp_low[k]]) {
       myMinHeap.push(Rule(grp_low[k], k, get_lambda(grp_low[k], k, table)));
     }
     
-    if (has_grp_high[k] & active[grp_high[k]]) {
+    if (has_grp_high[k]){ // & active[grp_high[k]]) {
       myMinHeap.push(Rule(k, grp_high[k], get_lambda(k, grp_high[k], table)));
     }
   }
