@@ -6,7 +6,7 @@
 using namespace Rcpp;
 
 // fuse
-DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0);
+List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0);
 RcppExport SEXP _fusedanova_fuse(SEXP beta0SEXP, SEXP slope0SEXP, SEXP grp_size0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

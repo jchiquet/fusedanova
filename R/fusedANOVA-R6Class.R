@@ -8,11 +8,13 @@
 fusedANOVA <-
    R6Class(classname = "fusedANOVA",
     public = list(
-      data      = NULL,
-    	cl0       = NULL,
-	    weighting = NULL,
-	  	path      = NULL,
-	  	order     = NULL,
+      data       = NULL,
+    	cl0        = NULL,
+	    weighting  = NULL,
+      dendrogram = NULL,
+	  	path       = NULL,
+	  	merge      = NULL,
+	  	order      = NULL,
 	  	initialize = function(data, class0, weighting, standardize) {
         self$data      <- data
         private$n      <- length(data)
@@ -60,8 +62,15 @@ fusedANOVA$set("public", "get_path",
     self$order <- order(mean_k)
 
     slopes <- get_slopes(mean_k[self$order], private$nk[self$order], var_k[self$order], self$weighting, 1, matrix(0,0,0) )
-    self$path <- fuse(mean_k[self$order], slopes, private$nk[self$order]) 
-      
+    out    <- fuse(mean_k[self$order], slopes, private$nk[self$order]) 
+    
+    self$path <- out$path
+    self$merge <- out$merge
+    
+    hc_tmp <- list(merge = self$merge, height = self$penalties, order = self$order)
+    class(hc_tmp) <- "hclust"
+    # self$dendrogram <- reorder(as.dendrogram(hc_tmp), self$order)
+    self$dendrogram <- as.dendrogram(hc_tmp)
     invisible(self)
   }
 )

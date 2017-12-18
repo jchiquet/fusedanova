@@ -38,7 +38,7 @@ double compute_lambda(int group1, int group2, const NumericVector& beta, const N
 
 //' @export
 // [[Rcpp::export]]
-DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
+List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
 
   // VARIABLES DECLARATION
   int n = grp_size0.size() ;
@@ -51,6 +51,7 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
   IntegerVector grp_low      (2 * n - 1) ;
   IntegerVector grp_high     (2 * n - 1) ;
   IntegerVector grp_size     (2 * n - 1) ;
+  IntegerMatrix merge        (n - 1, 2)  ;
   LogicalVector active       (2 * n - 1) ;
   LogicalVector has_grp_low  (2 * n - 1) ;
   LogicalVector has_grp_high (2 * n - 1) ;
@@ -136,6 +137,27 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
     active[group2] = false ;
     active[k] = true ;
     
+    // outputing in hclust format
+    signed int merge1, merge2;
+    if (group1 >= n) {
+      merge1 = (group1+1)-n;
+    } else {
+      merge1 = -(group1+1);
+    }
+    if (group2 >= n) {
+      merge2 = (group2+1)-n;
+    } else {
+      merge2 = -(group2+1);
+    }
+    if (merge1 < merge2) {
+      merge(k-n,0) = merge1;
+      merge(k-n,1) = merge2;
+    }
+    else {
+      merge(k-n,0) = merge2;
+      merge(k-n,1) = merge1;
+    }
+    
     // get new rules and add them to the queue
     if (has_grp_low[k] & active[grp_low[k]]) {
       myMinHeap.push(Rule(grp_low[k], k, compute_lambda(grp_low[k], k, beta, lambda, slope)));
@@ -146,12 +168,15 @@ DataFrame fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size
     }
   }
   
-  return(DataFrame::create(Named("beta"  ) = tail(beta       , n-1),
-                           Named("lambda") = tail(lambda     , n-1),
-                           Named("slope" ) = tail(slope      , n-1),
-                           Named("down"  ) = tail(i_low   + 1, n-1),
-                           Named("high"  ) = tail(i_high  + 1, n-1),
-                           Named("split" ) = tail(i_split + 1, n-1)));
+  DataFrame path = DataFrame::create(
+        Named("beta"  ) = tail(beta       , n-1),
+        Named("lambda") = tail(lambda     , n-1),
+        Named("down"  ) = tail(i_low   + 1, n-1),
+        Named("high"  ) = tail(i_high  + 1, n-1),
+        Named("split" ) = tail(i_split + 1, n-1)
+  );
+  
+  return List::create( Named("path") = path, Named("merge") = merge);
   
 }
 
