@@ -11,7 +11,7 @@ fusedANOVA <-
       data       = NULL,
     	cl0        = NULL,
 	    weighting  = NULL,
-      dendrogram = NULL,
+      hclust     = NULL,
 	  	path       = NULL,
 	  	merge      = NULL,
 	  	order      = NULL,
@@ -67,10 +67,10 @@ fusedANOVA$set("public", "get_path",
     self$path <- out$path
     self$merge <- out$merge
     
-    hc_tmp <- list(merge = self$merge, height = self$penalties, order = self$order)
-    class(hc_tmp) <- "hclust"
-    # self$dendrogram <- reorder(as.dendrogram(hc_tmp), self$order)
-    self$dendrogram <- as.dendrogram(hc_tmp)
+    hc <- list(merge = self$merge, height = self$penalties, labels = self$order, order = out$order)
+    class(hc) <- "hclust"
+    
+    self$hclust <- hc
     invisible(self)
   }
 )
