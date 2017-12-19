@@ -3,11 +3,10 @@
 #include <map>
 #include <Rcpp.h>
 
-using namespace std ;
-using namespace Rcpp ;
-
 # define NullGroup ((Group*)0)
 # define NullEvent ((Events::iterator)0)
+# define square(x) ((x)*(x))
+# define NEW_EVENT_THRESH 1e-16
 
 struct Group;
 
@@ -46,12 +45,14 @@ void delete_tree(Group*); // remove the tree for memory
 
 // fused anova functions : append the dataframe(s) result. 
 void add_results(Group*,double*,double*,double*,int*,int*,int*);
-void add_results_predict(Group*,double*, double*, double*, int*, int*, int*, vector<double>*, double*,vector<double>*, vector<double>*, vector<int>*, vector<int>*,int);
-               
-// cross validation functions
-void error_cv(Group*, double*, int, double*, double*,double*);
-void updateError(double*,double*,double*,double*,int,Group*,Group*);
 
 // utilities for self checking
 void print_groups(Groups); 
 void print_events(Events);
+
+
+// void add_results_predict(Group*,double*, double*, double*, int*, int*, int*, vector<double>*, double*,vector<double>*, vector<double>*, vector<int>*, vector<int>*,int);
+//                
+// // cross validation functions
+// void error_cv(Group*, double*, int, double*, double*,double*);
+// void updateError(double*,double*,double*,double*,int,Group*,Group*);

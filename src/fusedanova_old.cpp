@@ -1,10 +1,59 @@
-#include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include "nosplit.h"
+#include "fusedanova_old.h"
 
-# define square(x) ((x)*(x))
-# define NEW_EVENT_THRESH 1e-16
+using namespace std ;
+
+//calculate lambda where g1 and g2 fuse
+double getlambda(Group *g1,Group *g2){
+	return((g1->beta - g2->beta - g1->slope * g1->lambda + g2->slope * g2->lambda)/(g2->slope-g1->slope));
+}
+
+// used for adding/deleting previous and next joining events
+void insert_new_event(Events *eventlist,Group *newg,
+						Group *neighbor_group,Groups::iterator g_it_up,
+						Group *g_down){
+						
+	if(g_down-> nextFusionUp != NullEvent){
+		(*eventlist).erase(g_down->nextFusionUp); // erase the event that will not happen
+	}
+	Group *g_up = *g_it_up;
+	Events::iterator new_event;
+	Event e=Event(getlambda(neighbor_group,newg),g_it_up);
+
+	if(newg->lambda -e.first <= NEW_EVENT_THRESH){
+		// 2 things : new lambda >= old lambda and add a treshold to prevent round up errors
+		new_event=(*eventlist).insert(e);
+	}else{
+		new_event = NullEvent;
+	}
+
+	g_up->nextFusionUp = new_event; // contains the lambda for which the group is fusing the one on top of him
+}
+
+void print_groups(Groups myGroups){
+	Groups::const_iterator g_it;
+	Rprintf("idown iup beta lambda slope \n");
+	for(g_it = myGroups.begin(); g_it != myGroups.end();++g_it){
+		Rprintf("%i %i %f %f %f \n",(*g_it)->idown,(int)((*g_it)->idown+(*g_it)->len-1),(*g_it)->beta,(*g_it)->lambda,(*g_it)->slope);
+	}
+	Rprintf("\n");
+}
+
+void print_events(Events events){
+	Events::const_iterator it;
+	for(it = events.begin(); it != events.end();++it){
+		Rprintf("%f ",it->first);
+		if(it->second == (Groups::iterator)0) Rprintf("NULL \n");
+		else Rprintf("%f \n",(*(it->second))->beta);
+	}
+	Rprintf("size: %f \n",events.size());
+}
+
+void delete_tree(Group *g){
+	Group *g1=g->childdown,*g2=g->childup;
+	delete g;
+	if(g1 != NullGroup)delete_tree(g1);
+	if(g2 != NullGroup)delete_tree(g2);
+}
 
 // General function
 Group* maketree(double* x ,int K, double* sl, double* ngroup){
@@ -176,59 +225,6 @@ Group* fuse_groups(Groups myGroups){
 	//print_groups(myGroups);
 	return g;
 
-}
-
-//calculate lambda where g1 and g2 fuse
-double getlambda(Group *g1,Group *g2){
-	return((g1->beta - g2->beta - g1->slope * g1->lambda + g2->slope * g2->lambda)/(g2->slope-g1->slope));
-}
-
-// used for adding/deleting previous and next joining events
-void insert_new_event(Events *eventlist,Group *newg,
-						Group *neighbor_group,Groups::iterator g_it_up,
-						Group *g_down){
-						
-	if(g_down-> nextFusionUp != NullEvent){
-		(*eventlist).erase(g_down->nextFusionUp); // erase the event that will not happen
-	}
-	Group *g_up = *g_it_up;
-	Events::iterator new_event;
-	Event e=Event(getlambda(neighbor_group,newg),g_it_up);
-
-	if(newg->lambda -e.first <= NEW_EVENT_THRESH){
-		// 2 things : new lambda >= old lambda and add a treshold to prevent round up errors
-		new_event=(*eventlist).insert(e);
-	}else{
-		new_event = NullEvent;
-	}
-
-	g_up->nextFusionUp = new_event; // contains the lambda for which the group is fusing the one on top of him
-}
-
-void print_groups(Groups myGroups){
-	Groups::const_iterator g_it;
-	Rprintf("idown iup beta lambda slope \n");
-	for(g_it = myGroups.begin(); g_it != myGroups.end();++g_it){
-		Rprintf("%i %i %f %f %f \n",(*g_it)->idown,(int)((*g_it)->idown+(*g_it)->len-1),(*g_it)->beta,(*g_it)->lambda,(*g_it)->slope);
-	}
-	Rprintf("\n");
-}
-
-void print_events(Events events){
-	Events::const_iterator it;
-	for(it = events.begin(); it != events.end();++it){
-		Rprintf("%f ",it->first);
-		if(it->second == (Groups::iterator)0) Rprintf("NULL \n");
-		else Rprintf("%f \n",(*(it->second))->beta);
-	}
-	Rprintf("size: %f \n",events.size());
-}
-
-void delete_tree(Group *g){
-	Group *g1=g->childdown,*g2=g->childup;
-	delete g;
-	if(g1 != NullGroup)delete_tree(g1);
-	if(g2 != NullGroup)delete_tree(g2);
 }
 
 void add_results(Group *g,double *beta,

@@ -5,19 +5,6 @@
 
 using namespace Rcpp;
 
-// fuse
-List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0);
-RcppExport SEXP _fusedanova_fuse(SEXP beta0SEXP, SEXP slope0SEXP, SEXP grp_size0SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type beta0(beta0SEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type slope0(slope0SEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type grp_size0(grp_size0SEXP);
-    rcpp_result_gen = Rcpp::wrap(fuse(beta0, slope0, grp_size0));
-    return rcpp_result_gen;
-END_RCPP
-}
 // fuse_old
 DataFrame fuse_old(NumericVector x, NumericVector slopes, NumericVector ngroup);
 RcppExport SEXP _fusedanova_fuse_old(SEXP xSEXP, SEXP slopesSEXP, SEXP ngroupSEXP) {
@@ -28,6 +15,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type slopes(slopesSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type ngroup(ngroupSEXP);
     rcpp_result_gen = Rcpp::wrap(fuse_old(x, slopes, ngroup));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fuse
+List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0);
+RcppExport SEXP _fusedanova_fuse(SEXP beta0SEXP, SEXP slope0SEXP, SEXP grp_size0SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type beta0(beta0SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type slope0(slope0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type grp_size0(grp_size0SEXP);
+    rcpp_result_gen = Rcpp::wrap(fuse(beta0, slope0, grp_size0));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -64,8 +64,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_fusedanova_fuse", (DL_FUNC) &_fusedanova_fuse, 3},
     {"_fusedanova_fuse_old", (DL_FUNC) &_fusedanova_fuse_old, 3},
+    {"_fusedanova_fuse", (DL_FUNC) &_fusedanova_fuse, 3},
     {"_fusedanova_get_clustering", (DL_FUNC) &_fusedanova_get_clustering, 5},
     {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 6},
     {NULL, NULL, 0}

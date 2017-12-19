@@ -648,11 +648,12 @@ hclust.one.dim <- function(n, fa1) {
     IndiceDeRegle <- IndiceDeRegle+1
   }
   
-  Ordre <- OrdreIndividus(n, Groupes, NumeroGroupes)
+  order <- OrdreIndividus(n, Groupes, NumeroGroupes)
   out <- CreationMatriceMerge(n, Groupes,NumeroGroupes)
  
   height <- sort(unique(fa1@result[[1]]$table$lambda))[-1]
-  Cluster <- list(merge = out$MatriceMerge, height = height, order = Ordre)
+  # order <- fa1@result[[1]]$order
+  Cluster <- list(merge = out$MatriceMerge, height = height, order = order)
   class(Cluster) <- "hclust"
   Cluster
 }

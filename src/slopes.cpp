@@ -1,11 +1,7 @@
-#include <Rcpp.h>
-#include <stdlib.h>
-#include <vector>
+#include "slopes.h"
+
 using namespace Rcpp;
 using namespace std;
-
-# define square(x) ((x)*(x))
-# define NEW_EVENT_THRESH 1e-16
 
 //' @export
 // [[Rcpp::export]]
@@ -43,19 +39,19 @@ NumericVector get_slopes(NumericVector &xm    ,
     vector<double> slopes1(n),slopes2(n);
     
     for (int i=n-1;i>0;i--){
-      sum1 += ngroup[i]*exp(-gamma * xm[i]);
+      sum1 += ngroup[i]*std::exp(-gamma * xm[i]);
       slopes1[i-1] = sum1;
     }
     slopes1[n-1] =0;
     
     for (int i=1;i<n;i++){
-      sum2 += ngroup[i-1]*exp(gamma * xm[i-1]);
+      sum2 += ngroup[i-1]*std::exp(gamma * xm[i-1]);
       slopes2[i] = sum2;
     }
     slopes2[0] =0;	
   
     for (int i=0;i<n;i++){
-      slopes.push_back(slopes1[i]*exp(gamma * xm[i])- slopes2[i]*exp(-gamma * xm[i]));
+      slopes.push_back(slopes1[i] * std::exp(gamma * xm[i])- slopes2[i]*std::exp(-gamma * xm[i]));
     }		
     
     // O(n2) calculation for all the rest
@@ -67,7 +63,7 @@ NumericVector get_slopes(NumericVector &xm    ,
     for(int i=0;i<(n-1);i++){
       sum1=0;
       for(int j =n-1;j>i;j--){
-        sum1 += ngroup[j] * exp(-gamma* square(xm[i]-xm[j]));
+        sum1 += ngroup[j] * std::exp(-gamma* square(xm[i]-xm[j]));
       }
       slopes.push_back(sum1);
     }
@@ -77,7 +73,7 @@ NumericVector get_slopes(NumericVector &xm    ,
     for(int i=1;i<n;i++){
       sum2=0;
       for (int j = 0;j<i ;j++){
-        sum2 += ngroup[j] * exp(-gamma* square(xm[i]-xm[j]));
+        sum2 += ngroup[j] * std::exp(-gamma* square(xm[i]-xm[j]));
       }
       slopes[i]-=sum2;
     }
@@ -87,7 +83,7 @@ NumericVector get_slopes(NumericVector &xm    ,
     for(int i=0;i<(n-1);i++){
       sum1=0;
       for(int j =n-1;j>i;j--){
-        sum1 += ngroup[j] /pow(fabs(xm[i]-xm[j]),gamma);
+        sum1 += ngroup[j] /pow(std::fabs(xm[i]-xm[j]),gamma);
       }
       slopes.push_back(sum1);
     }
@@ -97,7 +93,7 @@ NumericVector get_slopes(NumericVector &xm    ,
     for(int i=1;i<n;i++){
       sum2=0;
       for (int j = 0;j<i ;j++){
-        sum2 += ngroup[j] /pow(fabs(xm[i]-xm[j]),gamma);
+        sum2 += ngroup[j] /pow(std::fabs(xm[i]-xm[j]),gamma);
       }
       slopes[i]-=sum2;
     }
@@ -123,7 +119,7 @@ NumericVector get_slopes(NumericVector &xm    ,
         if (i==j){
           sign= 1;
         }else{
-          sum1+= sign * sqrt(((ngroup[i]-1)*xv[i] + (ngroup[j]-1)*xv[j])/(ngroup[i]+ngroup[j]-2)) /sqrt(1/ngroup[i]+1/ngroup[j]) ;
+          sum1+= sign * std::sqrt(((ngroup[i]-1)*xv[i] + (ngroup[j]-1)*xv[j])/(ngroup[i]+ngroup[j]-2)) /sqrt(1/ngroup[i]+1/ngroup[j]) ;
         }
       } 
       slopes.push_back(sum1/ ngroup[i]);
@@ -136,7 +132,7 @@ NumericVector get_slopes(NumericVector &xm    ,
         if (i==j){
           sign= 1 ;
         }else{
-          sum1+= sign * sqrt(xv[i]/ngroup[i]+xv[j]/ngroup[j])/(1/ngroup[i]+1/ngroup[j]) ;
+          sum1+= sign * std::sqrt(xv[i]/ngroup[i]+xv[j]/ngroup[j])/(1/ngroup[i]+1/ngroup[j]) ;
         }
       } 
       slopes.push_back(sum1/ngroup[i]);

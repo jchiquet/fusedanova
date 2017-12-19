@@ -1,66 +1,9 @@
-#include <Rcpp.h>
 #include <bits/stdc++.h>
-#include "nosplit.h"
 #include <stdio.h>
+#include "order.h"
 
 using namespace Rcpp ;
-
-struct pos_node {
-  int pos;
-  int node;
-};
-
-IntegerVector order_nodes(const int N, const IntegerMatrix& merge, const IntegerVector& node_size) {
-  /* Parameters:
-  N         : number of data points
-  merge     : (N-1)×2 array which specifies the node indices which are merged in each step of the clustering procedure.
-  Negative entries -1...-N point to singleton nodes, while positive entries 1...(N-1) point to nodes which are themselves parents of other nodes.
-  node_size : array of node sizes - makes it easier
-  order     : output array of size N
-  Runtime: Θ(N)
-  */
-  std::vector<pos_node> queue(N/2);
-  
-  int parent;
-  int child;
-  int pos = 0;
-  IntegerVector order (N);
-  queue[0].pos = 0;
-  queue[0].node = N-2;
-  int idx = 1;
-  
-  do {
-    --idx;
-    pos = queue[idx].pos;
-    parent = queue[idx].node;
-
-    // First child
-    child = merge(parent, 0);
-    if (child<0) { // singleton node, write this into the 'order' array.
-      order[pos] = -child;
-      ++pos;
-    }
-    else { /* compound node: put it on top of the queue and decompose it in a later iteration. */
-      queue[idx].pos = pos;
-      queue[idx].node = child-1; // convert index-1 based to index-0 based
-      ++idx;
-      pos += node_size[child-1];
-    }
-    // Second child
-    child = merge(parent,1);
-    if (child<0) {
-      order[pos] = -child;
-    }
-    else {
-      queue[idx].pos = pos;
-      queue[idx].node = child-1;
-      ++idx;
-    }
-
-  } while (idx>0);
-  
-  return(order) ;
-}
+using namespace std ;
 
 class Rule {
   
@@ -235,63 +178,8 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
   );
   
   
-  IntegerVector order = order_nodes(n, merge, tail(grp_size, n-1));
+  IntegerVector order = get_order(n, merge, tail(grp_size, n-1));
   
   return List::create( Named("path") = path, Named("merge") = merge, Named("order") = order);
   
 }
-
-//' @export
-// [[Rcpp::export]]
-DataFrame fuse_old(NumericVector x, NumericVector slopes, NumericVector ngroup){
-
-	Group *G = maketree(&x[0], x.length(), &slopes[0], &ngroup[0]);
-
-  int nrow = 2*G->len -1; // nb infos = K init gpes + K-1 ks 
-  
-  NumericVector beta(nrow), lambda(nrow), slope(nrow);
-  IntegerVector idown(nrow), iup(nrow);
-  
-  int row=0;
-  
-  add_results(G, &beta[0], &lambda[0], &slope[0], &idown[0], &iup[0], &row);
-  
-  DataFrame L = DataFrame::create(Named("beta"  , beta),
-                                  Named("lambda", lambda),
-                                  Named("slope" , slope),
-                                  Named("idown" , idown),
-                                  Named("iup"   , iup));
-	
-	delete_tree(G); // delete the old tree for memory
-
-	return L;
-}
-
-// we process each dimension individually using this function
-// RcppExport SEXP noSplitcv(SEXP R_x,SEXP R_xv,SEXP R_ngroup, SEXP R_xtest,SEXP R_ngrouptest ,SEXP R_args) {
-// 
-// 	NumericVector x(R_x);
-// 	NumericVector xv(R_xv);
-// 	NumericVector xtest(R_xtest);
-// 	NumericVector ngroup(R_ngroup);
-// 	NumericVector ngrouptest(R_ngrouptest);
-// 	List args(R_args);
-//   
-// 	std::string weights = Rcpp::as<std::string>(args["weights"]); 
-// 	double gamma = Rcpp::as<double>(args["gamma"]); 
-// 	NumericMatrix W = args["W"];
-// 	NumericVector lambdalist = args["lambdalist"];
-// 
-// 	NumericVector error(lambdalist.length());
-// 
-// 	vector<double> sl = calculateSlope(x,ngroup,xv,weights,gamma,W,x.length());
-//  
-// 	Group *G = maketree(&x[0], x.length(), &sl[0],&ngroup[0]);
-// 
-// 	error_cv(G,&lambdalist[0],lambdalist.length(),&xtest[0], &ngrouptest[0],&error[0]);
-// 
-// 	delete_tree(G); 
-// 
-// 	return(error);
-// }
-// 

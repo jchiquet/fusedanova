@@ -2,13 +2,13 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @export
-fuse <- function(beta0, slope0, grp_size0) {
-    .Call('_fusedanova_fuse', PACKAGE = 'fusedanova', beta0, slope0, grp_size0)
+fuse_old <- function(x, slopes, ngroup) {
+    .Call('_fusedanova_fuse_old', PACKAGE = 'fusedanova', x, slopes, ngroup)
 }
 
 #' @export
-fuse_old <- function(x, slopes, ngroup) {
-    .Call('_fusedanova_fuse_old', PACKAGE = 'fusedanova', x, slopes, ngroup)
+fuse <- function(beta0, slope0, grp_size0) {
+    .Call('_fusedanova_fuse', PACKAGE = 'fusedanova', beta0, slope0, grp_size0)
 }
 
 #' @export
