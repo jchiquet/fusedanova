@@ -1,10 +1,11 @@
+rm(list=ls())
 library(fusedanova)
 
 n <- 1e5
 x <- sort(rnorm(n))
 w <- 1:n
  
-fa1 <- fusedanova(x, w)
+fa1 <- fusedanova(x, w, gamma=1)
 fa1_path <- fa1@result[[1]]$table[fa1@result[[1]]$table$lambda != 0, ]
 fa1_path <- fa1_path[order(fa1_path$lambda), ]
 

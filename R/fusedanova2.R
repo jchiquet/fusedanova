@@ -80,7 +80,7 @@
 ##' }
 ##'
 ##' @export 
-fusedanova2 <- function(x, group = factor(rep(1,length(x))),
+fusedanova2 <- function(x, group = 1:length(x),
                        weighting = c("laplace", "gaussian", "adaptive"),
                        gamma = 0, standardize = FALSE, W = NULL) {
   
@@ -130,7 +130,48 @@ fusedanova2 <- function(x, group = factor(rep(1,length(x))),
                   labels = levels(group)[order],
                   order = out$order), class = "hclust")
 
-  res <- list(path = out$path, hc = hc, slopes=slopes)
+  res <- list(path = out$path, hc = hc, slopes = slopes)
   res
 }
 
+slopes <- function(x, group, gamma = 1) {
+  
+  nk <- tabulate(group)  
+  k <- length(nk)
+  mean_k <- rowsum(x, group)/nk
+  order <- order(mean_k)
+
+  nk <- nk[order]
+  mean_k <- mean_k[order]
+  
+  ## as fast à C++
+  ## Laplace weights (nk.nl exp(- gamma | yk - yl|)), computation in O(n)/O(K)
+  c1 <- rev(cumsum(c(0,rev(nk * exp(-gamma*mean_k))[-k])))
+  c2 <- cumsum(c(0,(nk * exp(gamma*mean_k))[-k]))
+  w <- exp(gamma*mean_k) * c1 - exp(-gamma*mean_k) * c2
+  w
+}
+
+# slopes0 <- function(x, group, gamma = 1) {
+#   
+#   
+#   nk <- tabulate(group)  
+#   k <- length(nk)
+#   mean_k <- rowsum(x, group)/nk
+#   order <- order(mean_k)
+# 
+#   nk <- nk[order]
+#   mean_k <- mean_k[order]
+#   
+#   ## as fast à C++
+#   ## Laplace weights (nk.nl exp(- gamma | yk - yl|)), computation in O(n)/O(K)
+#   s <- numeric(k)
+#   w <- matrix(0,k,k)
+#   for (i in 1:k) {
+#     for (j in 1:k) {
+#       w[i,j] <- nk[j] * exp(-gamma * abs(mean_k[i] - mean_k[j]) )
+#     }
+#     s[i] <- - sum( w[i, ] * sign (i - 1:k))
+#   }
+#   s
+# }

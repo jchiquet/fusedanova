@@ -7,22 +7,42 @@ using namespace std ;
 
 # define ZERO 1e-16
 
+struct node {
+  double lambda         ; 
+  double beta           ;
+  double slope          ;
+  int_fast32_t label    ;
+  int_fast32_t i_low    ;
+  int_fast32_t i_split  ;
+  int_fast32_t i_high   ;
+  int_fast32_t grp_low  ;
+  int_fast32_t grp_high ;
+  int_fast32_t grp_size ;
+  bool active           ;
+  bool has_grp_low      ;
+  bool has_grp_high     ;
+};
+
+// double get_lambda(int group1, int group2, const DataFrame& table) {
+double compute_lambda(const node& node1, const node& node2) {
+  return((node1.beta - node2.beta - node1.slope * node1.lambda + node2.slope * node2.lambda) / (node2.slope - node1.slope));
+}
+
 class Rule {
   
 private:
-  int group1 ;
-  int group2 ;
+  node node1 ;
+  node node2 ;
   double lambda ;
   
 public:
-  Rule(int group1_, int group2_, double lambda_) : group1(group1_),  group2(group2_), lambda(lambda_) {} ;
-
-  int get_group1() const {return group1 ;}  
-  int get_group2() const {return group2 ;}  
+  Rule(node node1_, node node2_) : node1(node1_),  node2(node2_) {
+    lambda = compute_lambda(node1_, node2_);
+  } ;
+  node get_node1() const {return node1 ;}  
+  node get_node2() const {return node2 ;}  
   double get_lambda() const {return lambda ;}
-  bool is_active(const LogicalVector& active) const {
-    return(active[group1] & active[group2] & lambda > 0);
-  }
+  bool is_active() const {return(node1.active & node2.active);}
 };
 
 class RuleComparator {
@@ -32,115 +52,107 @@ public:
   }
 };
 
-// double get_lambda(int group1, int group2, const DataFrame& table) {
-double compute_lambda(int group1, int group2, const NumericVector& beta, const NumericVector& lambda, const NumericVector& slope) {
-  return((beta[group1] - beta[group2] - slope[group1] * lambda[group1] + slope[group2] * lambda[group2]) / (slope[group2] - slope[group1]));
-}
-
-
 //' @export
 // [[Rcpp::export]]
 List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
 
   // VARIABLES DECLARATION
   int n = grp_size0.size() ;
-  
-  NumericVector lambda       (2 * n - 1) ; 
-  NumericVector beta         (2 * n - 1) ;
-  NumericVector slope        (2 * n - 1) ;
-  IntegerVector i_low        (2 * n - 1) ;
-  IntegerVector i_split      (2 * n - 1) ;
-  IntegerVector i_high       (2 * n - 1) ;
-  IntegerVector grp_low      (2 * n - 1) ;
-  IntegerVector grp_high     (2 * n - 1) ;
-  IntegerVector grp_size     (2 * n - 1) ;
-  LogicalVector active       (2 * n - 1) ;
-  LogicalVector has_grp_low  (2 * n - 1) ;
-  LogicalVector has_grp_high (2 * n - 1) ;
-  
-  IntegerMatrix merge        (n - 1, 2)  ;
+  vector<node> nodes  (2*n - 1)  ; // the vector of the successive nodes in the fusion tree
+  priority_queue <Rule, vector<Rule>, RuleComparator> myMinHeap ; // a heap to handle to fusion events
+  IntegerMatrix merge (n - 1, 2) ; // a matrix to encode in the hclust format the final fusion tree
 
-  priority_queue <Rule, vector<Rule>, RuleComparator> myMinHeap ;
-
-  // INITIALIZATION OF THE N-1 GROUPS 
+  NumericVector beta(n-1), lambda(n-1) ;
+  IntegerVector down(n-1), high(n-1), split(n-1), sizes(n-1) ;
+  
+  // INITIALIZATION OF THE FIRST N-1 NODES (INITIAL GROUPS)
   for (int k=0; k < n; k++) {
-    lambda[k]   = 0.0;
-    beta[k]     = beta0[k];
-    slope[k]    = slope0[k];
-    i_low[k]    = k;
-    i_split[k]  = k;
-    i_high[k]   = k;
-    grp_size[k] = grp_size0[k] ;
-    active[k]   = true;
+    nodes[k].lambda   = 0.0;
+    nodes[k].beta     = beta0[k];
+    nodes[k].slope    = slope0[k];
+    nodes[k].label    = k;
+    nodes[k].i_low    = k;
+    nodes[k].i_split  = k;
+    nodes[k].i_high   = k;
+    nodes[k].grp_size = grp_size0[k] ;
+    nodes[k].active   = true;
     if (k == 0) {
-      has_grp_low[k] = false ;
-      grp_low[k] = -1;
+      nodes[k].has_grp_low = false ;
+      nodes[k].grp_low = -1;
     } else {
-      has_grp_low[k] = true ;
-      grp_low[k] = k - 1;
+      nodes[k].has_grp_low = true ;
+      nodes[k].grp_low = k - 1;
     }
     if (k == (n-1)) {
-      has_grp_high[k] = false ;
-      grp_high[k] = -1 ;
+      nodes[k].has_grp_high = false ;
+      nodes[k].grp_high = -1 ;
     } else {
-      has_grp_high[k] = true ;
-      grp_high[k] = k + 1;
+      nodes[k].has_grp_high = true ;
+      nodes[k].grp_high = k + 1;
     }
   }
   
-  // FIRST SET OF RULE BETWEEN THE N-2 PAIRS OF GROUPS AT THE BOTTOM OF THE TREE
+  // FIRST SET OF RULE BETWEEN THE SUCCSSIVE N-2 PAIRS OF NODES AT THE BOTTOM OF THE TREE
   for (int k=0; k < (n-1); k++) {
-    myMinHeap.push(Rule(k, k + 1, compute_lambda(k, k + 1, beta, lambda, slope)));
+    myMinHeap.push(Rule(nodes[k], nodes[k+1]));
   }
 
   // n-1 kS WILL OCCUR  
   for (int k = n; k < (2*n-1);  k++) {
     
     // FIND THE NEXT ACTIVE RULE
-    while (!myMinHeap.top().is_active(active)) {
+    while (!myMinHeap.top().is_active()) {
       myMinHeap.pop() ;
     }
-    // std::cout << "k = " << k - (n-1) + 1 
-    //           << ", heapSize = " << myMinHeap.size() 
-    //           << ", active groups = " << sum(active) << std::endl;
     Rule rule_ = myMinHeap.top();
     myMinHeap.pop() ;
     
     // MERGE THE TWO FUSING GROUP
     // Updating the fields of the DataFrame of the fusing group
-    int group1 = rule_.get_group1(), group2 = rule_.get_group2();
+    int group1 = rule_.get_node1().label, group2 = rule_.get_node2().label;
     double lambda_k = rule_.get_lambda();
+    
     // merge(k, rule_.get_lambda(), rule_.get_group1(), rule_.get_group2(), table) ;
     
-    lambda  [k] = lambda_k ;
-    grp_size[k] = grp_size[group1] + grp_size[group2] ;
-    slope   [k] = (grp_size[group1] * slope[group1] + grp_size[group2] * slope[group2]) / grp_size[k] ;
-    beta    [k] = beta[group1] + (lambda_k - lambda[group1]) * slope[group1] ;
-    if(i_low[group1] < i_low[group2]) {
-      i_split     [k] = i_high      [group1];
-      i_low       [k] = i_low       [group1];
-      i_high      [k] = i_high      [group2];
-      grp_low     [k] = grp_low     [group1];
-      grp_high    [k] = grp_high    [group2];
-      has_grp_low [k] = has_grp_low [group1];
-      has_grp_high[k] = has_grp_high[group2];
+    nodes[k].label  = k ;
+    nodes[k].lambda = lambda_k ;
+    nodes[k].grp_size = nodes[group1].grp_size + nodes[group2].grp_size ;
+    nodes[k].slope    = (nodes[group1].grp_size * nodes[group1].slope + nodes[group2].grp_size * nodes[group2].slope) / nodes[k].grp_size ;
+    nodes[k].beta     = nodes[group1].beta + (lambda_k - nodes[group1].lambda) * nodes[group1].slope ;
+    if(nodes[group1].i_low < nodes[group2].i_low) {
+      nodes[k].i_split      = nodes[group1].i_high      ;
+      nodes[k].i_low        = nodes[group1].i_low       ;
+      nodes[k].i_high       = nodes[group2].i_high      ;
+      nodes[k].grp_low      = nodes[group1].grp_low     ;
+      nodes[k].grp_high     = nodes[group2].grp_high    ;
+      nodes[k].has_grp_low  = nodes[group1].has_grp_low ;
+      nodes[k].has_grp_high = nodes[group2].has_grp_high;
     } else {
-      i_split     [k] = i_high      [group2]; 
-      i_low       [k] = i_low       [group2];
-      i_high      [k] = i_high      [group1];
-      grp_low     [k] = grp_low     [group2];
-      grp_high    [k] = grp_high    [group1];
-      has_grp_low [k] = has_grp_low [group2];
-      has_grp_high[k] = has_grp_high[group1];
+      nodes[k].i_split      = nodes[group2].i_high      ; 
+      nodes[k].i_low        = nodes[group2].i_low       ;
+      nodes[k].i_high       = nodes[group1].i_high      ;
+      nodes[k].grp_low      = nodes[group2].grp_low     ;
+      nodes[k].grp_high     = nodes[group1].grp_high    ;
+      nodes[k].has_grp_low  = nodes[group2].has_grp_low ;
+      nodes[k].has_grp_high = nodes[group1].has_grp_high;
     }
     
     // Updating neighbors
-    if(has_grp_low [k])  grp_high[  grp_low [k] ] = k;
-    if(has_grp_high [k])  grp_low[ grp_high [k] ] = k;
+    if(nodes[k].has_grp_low )  nodes[nodes[k].grp_low ].grp_high = k;
+    if(nodes[k].has_grp_high)  nodes[nodes[k].grp_high].grp_low  = k;
     
-    active[group1] = false ;
-    active[group2] = false ;
-    active[k] = true ;
+    nodes[group1].active = false ;
+    nodes[group2].active = false ;
+    nodes[k].active = true ;
+    
+    // get new rules and add them to the queue
+    if (nodes[k].has_grp_low & nodes[nodes[k].grp_low].active) {
+      myMinHeap.push(Rule(nodes[nodes[k].grp_low], nodes[k]));
+    }
+    
+    if (nodes[k].has_grp_high & nodes[nodes[k].grp_high].active) {
+      myMinHeap.push(Rule(nodes[k], nodes[nodes[k].grp_high]));
+    }
     
     // outputing in hclust format
     signed int merge1, merge2;
@@ -162,26 +174,25 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
       merge(k-n,0) = merge2;
       merge(k-n,1) = merge1;
     }
-    
-    // get new rules and add them to the queue
-    if (has_grp_low[k] & active[grp_low[k]]) {
-      myMinHeap.push(Rule(grp_low[k], k, compute_lambda(grp_low[k], k, beta, lambda, slope)));
-    }
-    
-    if (has_grp_high[k] & active[grp_high[k]]) {
-      myMinHeap.push(Rule(k, grp_high[k], compute_lambda(k, grp_high[k], beta, lambda, slope)));
-    }
+
+    // output the path 
+    beta  (k-n) = nodes[k].beta ;
+    lambda(k-n) = nodes[k].lambda ;
+    down  (k-n)   = nodes[k].i_low + 1;
+    high  (k-n)   = nodes[k].i_high + 1;
+    split (k-n)  = nodes[k].i_split + 1;
+    sizes (k-n)  = nodes[k].grp_size;
   }
   
   DataFrame path = DataFrame::create(
-        Named("beta"  ) = tail(beta       , n-1),
-        Named("lambda") = tail(lambda     , n-1),
-        Named("down"  ) = tail(i_low   + 1, n-1),
-        Named("high"  ) = tail(i_high  + 1, n-1),
-        Named("split" ) = tail(i_split + 1, n-1)
+        Named("beta"  ) = beta,
+        Named("lambda") = lambda,
+        Named("down"  ) = down,
+        Named("high"  ) = high,
+        Named("split" ) = split
   );
   
-  IntegerVector order = get_order(n, merge, tail(grp_size, n-1));
+  IntegerVector order = get_order(n, merge, sizes);
   
   return List::create( Named("path") = path, Named("merge") = merge, Named("order") = order);
   

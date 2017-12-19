@@ -5,9 +5,9 @@ set.seed(111)
 n <- 10
 x <- rnorm(n)
 w <- 1:n
-gamma <- 1
-weights <- "adaptive"
-standardize <- TRUE
+gamma <- 0
+weights <- "laplace"
+standardize <- FALSE
 
 fa1 <- fusedanova(x, w, weights = weights, gamma = gamma, standardize = standardize)
 fa1_path <- fa1@result[[1]]$table[fa1@result[[1]]$table$lambda>0, ]
