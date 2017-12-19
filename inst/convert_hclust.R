@@ -5,7 +5,7 @@ set.seed(111)
 n <- 10
 x <- rnorm(n)
 w <- 1:n
-gamma <- 0
+gamma <- 3
 weights <- "laplace"
 standardize <- FALSE
 
@@ -16,6 +16,8 @@ hc <- hclust.one.dim(n, fa1)
 
 fa2 <- fusedanova2(x, w, weighting = weights, gamma = gamma, standardize = standardize)
 
+print(fa2$path)
+print(fa1_path)
 par(mfrow=c(1,2))
 plot(hc, main ="fa1")
 plot(fa2$hc, main="fa2")

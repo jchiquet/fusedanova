@@ -11,19 +11,18 @@ struct node {
   double lambda         ; 
   double beta           ;
   double slope          ;
-  int_fast32_t label    ;
-  int_fast32_t i_low    ;
-  int_fast32_t i_split  ;
-  int_fast32_t i_high   ;
-  int_fast32_t grp_low  ;
-  int_fast32_t grp_high ;
-  int_fast32_t grp_size ;
+  int label    ;
+  int i_low    ;
+  int i_split  ;
+  int i_high   ;
+  int grp_low  ;
+  int grp_high ;
+  int grp_size ;
   bool active           ;
   bool has_grp_low      ;
   bool has_grp_high     ;
 };
 
-// double get_lambda(int group1, int group2, const DataFrame& table) {
 double compute_lambda(const node& node1, const node& node2) {
   return((node1.beta - node2.beta - node1.slope * node1.lambda + node2.slope * node2.lambda) / (node2.slope - node1.slope));
 }
@@ -31,18 +30,18 @@ double compute_lambda(const node& node1, const node& node2) {
 class Rule {
   
 private:
-  node node1 ;
-  node node2 ;
+  node *node1 ;
+  node *node2 ;
   double lambda ;
   
 public:
-  Rule(node node1_, node node2_) : node1(node1_),  node2(node2_) {
-    lambda = compute_lambda(node1_, node2_);
+  Rule(node *node1_, node *node2_) : node1(node1_),  node2(node2_) {
+    lambda = compute_lambda(*node1_, *node2_);
   } ;
-  node get_node1() const {return node1 ;}  
-  node get_node2() const {return node2 ;}  
+  int label1() {return node1->label ;}  
+  int label2() {return node2->label ;}  
   double get_lambda() const {return lambda ;}
-  bool is_active() const {return(node1.active & node2.active);}
+  bool is_active() const {return(node1->active & node2->active);}
 };
 
 class RuleComparator {
@@ -51,6 +50,10 @@ public:
     return r1.get_lambda() > r2.get_lambda();
   }
 };
+
+// node merge_nodes(int k, Rule rule) {
+//   
+// };
 
 //' @export
 // [[Rcpp::export]]
@@ -94,7 +97,8 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
   
   // FIRST SET OF RULE BETWEEN THE SUCCSSIVE N-2 PAIRS OF NODES AT THE BOTTOM OF THE TREE
   for (int k=0; k < (n-1); k++) {
-    myMinHeap.push(Rule(nodes[k], nodes[k+1]));
+    if (compute_lambda(nodes[k], nodes[k+1]) > 0)
+      myMinHeap.push(Rule(&nodes[k], &nodes[k+1]));
   }
 
   // n-1 kS WILL OCCUR  
@@ -107,9 +111,9 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
     Rule rule_ = myMinHeap.top();
     myMinHeap.pop() ;
     
-    // MERGE THE TWO FUSING GROUP
+    // MERGE THE TWO FUSING NODES
     // Updating the fields of the DataFrame of the fusing group
-    int group1 = rule_.get_node1().label, group2 = rule_.get_node2().label;
+    int group1 = rule_.label1(), group2 = rule_.label2();
     double lambda_k = rule_.get_lambda();
     
     // merge(k, rule_.get_lambda(), rule_.get_group1(), rule_.get_group2(), table) ;
@@ -147,11 +151,13 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
     
     // get new rules and add them to the queue
     if (nodes[k].has_grp_low & nodes[nodes[k].grp_low].active) {
-      myMinHeap.push(Rule(nodes[nodes[k].grp_low], nodes[k]));
+      if (compute_lambda(nodes[nodes[k].grp_low], nodes[k]) > 0)
+        myMinHeap.push(Rule(&nodes[nodes[k].grp_low], &nodes[k]));
     }
     
     if (nodes[k].has_grp_high & nodes[nodes[k].grp_high].active) {
-      myMinHeap.push(Rule(nodes[k], nodes[nodes[k].grp_high]));
+      if (compute_lambda(nodes[k], nodes[nodes[k].grp_high]) > 0)
+        myMinHeap.push(Rule(&nodes[k], &nodes[nodes[k].grp_high]));
     }
     
     // outputing in hclust format
@@ -178,10 +184,10 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
     // output the path 
     beta  (k-n) = nodes[k].beta ;
     lambda(k-n) = nodes[k].lambda ;
-    down  (k-n)   = nodes[k].i_low + 1;
-    high  (k-n)   = nodes[k].i_high + 1;
-    split (k-n)  = nodes[k].i_split + 1;
-    sizes (k-n)  = nodes[k].grp_size;
+    down  (k-n) = nodes[k].i_low + 1;
+    high  (k-n) = nodes[k].i_high + 1;
+    split (k-n) = nodes[k].i_split + 1;
+    sizes (k-n) = nodes[k].grp_size;
   }
   
   DataFrame path = DataFrame::create(
