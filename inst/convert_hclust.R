@@ -5,7 +5,7 @@ set.seed(111)
 n <- 10
 x <- rnorm(n)
 w <- 1:n
-gamma <- 0
+gamma <- 0.5
 weights <- "laplace"
 
 fa1 <- fusedanova(x, w, weights = weights, gamma = gamma)

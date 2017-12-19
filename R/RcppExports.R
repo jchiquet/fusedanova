@@ -12,11 +12,6 @@ fuse <- function(beta0, slope0, grp_size0) {
 }
 
 #' @export
-get_clustering <- function(set_lambdas, all_lambdas, idown, iup, K) {
-    .Call('_fusedanova_get_clustering', PACKAGE = 'fusedanova', set_lambdas, all_lambdas, idown, iup, K)
-}
-
-#' @export
 get_slopes <- function(xm, ngroup, weights, gamma, W) {
     .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, weights, gamma, W)
 }

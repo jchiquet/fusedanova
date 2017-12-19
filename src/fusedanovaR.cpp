@@ -5,6 +5,8 @@
 using namespace Rcpp ;
 using namespace std ;
 
+# define ZERO 1e-16
+
 class Rule {
   
 private:
@@ -19,20 +21,19 @@ public:
   int get_group2() const {return group2 ;}  
   double get_lambda() const {return lambda ;}
   bool is_active(const LogicalVector& active) const {
-    return(active[group1] & active[group2]);
+    return(active[group1] & active[group2] & lambda > 0);
   }
 };
 
 class RuleComparator {
 public:
-  int operator() (const Rule& r1, const Rule& r2) {
+  double operator() (const Rule& r1, const Rule& r2) {
     return r1.get_lambda() > r2.get_lambda();
   }
 };
 
 // double get_lambda(int group1, int group2, const DataFrame& table) {
 double compute_lambda(int group1, int group2, const NumericVector& beta, const NumericVector& lambda, const NumericVector& slope) {
-
   return((beta[group1] - beta[group2] - slope[group1] * lambda[group1] + slope[group2] * lambda[group2]) / (slope[group2] - slope[group1]));
 }
 
@@ -172,6 +173,7 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
   DataFrame path = DataFrame::create(
         Named("beta"  ) = tail(beta       , n-1),
         Named("lambda") = tail(lambda     , n-1),
+        Named("slope")  = tail(slope      , n-1),
         Named("down"  ) = tail(i_low   + 1, n-1),
         Named("high"  ) = tail(i_high  + 1, n-1),
         Named("split" ) = tail(i_split + 1, n-1)

@@ -31,21 +31,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// get_clustering
-IntegerMatrix get_clustering(const NumericVector& set_lambdas, const NumericVector& all_lambdas, const IntegerVector& idown, const IntegerVector& iup, const int K);
-RcppExport SEXP _fusedanova_get_clustering(SEXP set_lambdasSEXP, SEXP all_lambdasSEXP, SEXP idownSEXP, SEXP iupSEXP, SEXP KSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type set_lambdas(set_lambdasSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type all_lambdas(all_lambdasSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type idown(idownSEXP);
-    Rcpp::traits::input_parameter< const IntegerVector& >::type iup(iupSEXP);
-    Rcpp::traits::input_parameter< const int >::type K(KSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_clustering(set_lambdas, all_lambdas, idown, iup, K));
-    return rcpp_result_gen;
-END_RCPP
-}
 // get_slopes
 NumericVector get_slopes(NumericVector& xm, IntegerVector& ngroup, std::string weights, double gamma, NumericMatrix& W);
 RcppExport SEXP _fusedanova_get_slopes(SEXP xmSEXP, SEXP ngroupSEXP, SEXP weightsSEXP, SEXP gammaSEXP, SEXP WSEXP) {
@@ -65,7 +50,6 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_fusedanova_fuse_old", (DL_FUNC) &_fusedanova_fuse_old, 3},
     {"_fusedanova_fuse", (DL_FUNC) &_fusedanova_fuse, 3},
-    {"_fusedanova_get_clustering", (DL_FUNC) &_fusedanova_get_clustering, 5},
     {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 5},
     {NULL, NULL, 0}
 };

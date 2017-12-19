@@ -1,8 +1,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-//' @export
-// [[Rcpp::export]]
 IntegerMatrix get_clustering (
     const NumericVector &set_lambdas,
     const NumericVector &all_lambdas,

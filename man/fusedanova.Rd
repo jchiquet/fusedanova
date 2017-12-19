@@ -5,8 +5,7 @@
 \title{Fit a Fused ANOVA model}
 \usage{
 fusedanova(x, class = 1:length(x), weights = c("default", "laplace",
-  "gaussian", "adaptive", "naivettest", "ttest", "welch", "personal"),
-  standardize = TRUE, ...)
+  "gaussian", "adaptive", "personal"), standardize = FALSE, ...)
 }
 \arguments{
 \item{x}{vector of observation for n individuals.}
