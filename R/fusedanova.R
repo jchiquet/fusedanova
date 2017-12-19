@@ -81,8 +81,8 @@
 ##'
 ##' @export
 fusedanova <- function(x, class = 1:length(x),
-                       weights = c("default", "laplace", "gaussian", "adaptive", "naivettest", "ttest", "welch", "personal"),
-                       standardize = TRUE, ...) {
+                       weights = c("default", "laplace", "gaussian", "adaptive", "personal"),
+                       standardize = FALSE, ...) {
   
   ## overwrite default parametrs with user's
   weights <- match.arg(weights)
@@ -123,18 +123,12 @@ calculatepath <- function(x, group, args) {
 
   ngroup <- tabulate(group)# vector of number by group
   xm <- rowsum(x,group)/ngroup
-  xv <- rep(0,length(xm))
-  if (args$weights %in% c("welch", "naivettest", "ttest")){
-    ## var needed if weights are of welch or ttest type
-    xv <- ngroup/(ngroup-1)*(rowsum(x^2,group)/ngroup - xm^2)
-  }
 
   o <- order(xm)
   xm <- xm[o] # sort from the smallest beta to the highest
   ngroup <- ngroup[o]
-  xv <- xv[o]
 
-  slopes <- get_slopes(xm, ngroup, xv, args$weights, args$gamma, args$W)  
+  slopes <- get_slopes(xm, ngroup, args$weights, args$gamma, args$W)  
   res  <- fuse_old(xm, slopes, ngroup)
 
   return(list(table = res, order = o))
@@ -161,28 +155,5 @@ normalize <- function(x,group){
   }
   res <- (x - mean(x))/s
   res
-}
-
-##' @export 
-fusedanova2 <- function(x, class = rep(1:length(x)),
-                       weights = c("default", "laplace", "gaussian", "adaptive", "naivettest", "ttest", "welch", "personal"),
-                       standardize = TRUE, ...) {
-  
-  ## overwrite default parametrs with user's
-  weights <- match.arg(weights)
-  args <- fusedANOVA_args(weights, standardize, list(...))
-  
-  ## check to partilly avoid crashes of th C++ code
-  stopif(!is.numeric(x)                 , "x must be a numeric vector")
-  stopif(any(is.na(x))                  , "NA value in x not allowed.")
-  stopif(length(x) != length(class)     , "data and class dimensions do not match")
-  stopif(length(unique(class)) == 1     , "y has only one level.")
-
-  # conversion of class ot a factor
-  if (!is.factor(class)) class <- as.factor(class)
-  
-  myFA <- fusedANOVA$new(data = x, class0 = class, weighting = weights, standardize = standardize)
-  myFA$get_path(args)
-  myFA
 }
 

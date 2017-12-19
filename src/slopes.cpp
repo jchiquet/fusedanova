@@ -7,7 +7,6 @@ using namespace std;
 // [[Rcpp::export]]
 NumericVector get_slopes(NumericVector &xm    ,
                          IntegerVector &ngroup,
-                         NumericVector &xv    , 
                          std::string weights       ,
                          double gamma         ,
                          NumericMatrix &W     ) {
@@ -98,45 +97,6 @@ NumericVector get_slopes(NumericVector &xm    ,
       slopes[i]-=sum2;
     }
     
-  } else if (weights == "naivettest"){ 
-    for (int i=0; i<n; i++){
-      sum1 = 0 ;
-      sign = -1 ;
-      for (int j=0; j<n; j++){
-        if (i==j){
-          sign = 1 ;
-        }else{
-          sum1+= sign / sqrt(1/ngroup[i]+1/ngroup[j]) ;
-        }
-      } 
-      slopes.push_back(sum1/ ngroup[i]);
-    } 	
-  } else if (weights == "ttest"){
-    for (int i=0; i<n; i++){
-      sum1 = 0;
-      sign = -1;
-      for (int j=0; j<n; j++){
-        if (i==j){
-          sign= 1;
-        }else{
-          sum1+= sign * std::sqrt(((ngroup[i]-1)*xv[i] + (ngroup[j]-1)*xv[j])/(ngroup[i]+ngroup[j]-2)) /sqrt(1/ngroup[i]+1/ngroup[j]) ;
-        }
-      } 
-      slopes.push_back(sum1/ ngroup[i]);
-    } 	
-  } else if (weights == "welch"){
-    for (int i=0; i<n; i++){
-      sum1 = 0;
-      sign = -1 ;
-      for (int j=0; j<n; j++){
-        if (i==j){
-          sign= 1 ;
-        }else{
-          sum1+= sign * std::sqrt(xv[i]/ngroup[i]+xv[j]/ngroup[j])/(1/ngroup[i]+1/ngroup[j]) ;
-        }
-      } 
-      slopes.push_back(sum1/ngroup[i]);
-    } 	
   } else if (weights == "personal"){
     for (int i=0; i<n; i++){
       sum1 = 0;

@@ -47,18 +47,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // get_slopes
-NumericVector get_slopes(NumericVector& xm, IntegerVector& ngroup, NumericVector& xv, std::string weights, double gamma, NumericMatrix& W);
-RcppExport SEXP _fusedanova_get_slopes(SEXP xmSEXP, SEXP ngroupSEXP, SEXP xvSEXP, SEXP weightsSEXP, SEXP gammaSEXP, SEXP WSEXP) {
+NumericVector get_slopes(NumericVector& xm, IntegerVector& ngroup, std::string weights, double gamma, NumericMatrix& W);
+RcppExport SEXP _fusedanova_get_slopes(SEXP xmSEXP, SEXP ngroupSEXP, SEXP weightsSEXP, SEXP gammaSEXP, SEXP WSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector& >::type xm(xmSEXP);
     Rcpp::traits::input_parameter< IntegerVector& >::type ngroup(ngroupSEXP);
-    Rcpp::traits::input_parameter< NumericVector& >::type xv(xvSEXP);
     Rcpp::traits::input_parameter< std::string >::type weights(weightsSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type W(WSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_slopes(xm, ngroup, xv, weights, gamma, W));
+    rcpp_result_gen = Rcpp::wrap(get_slopes(xm, ngroup, weights, gamma, W));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -67,7 +66,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fusedanova_fuse_old", (DL_FUNC) &_fusedanova_fuse_old, 3},
     {"_fusedanova_fuse", (DL_FUNC) &_fusedanova_fuse, 3},
     {"_fusedanova_get_clustering", (DL_FUNC) &_fusedanova_get_clustering, 5},
-    {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 6},
+    {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 5},
     {NULL, NULL, 0}
 };
 
