@@ -35,55 +35,6 @@ fusedANOVA <-
     )
   )
 
-fusedANOVA$set("private", "standardize",
-  function() {
-     if (private$k != private$n) {
-       # if any initial grouping, normalize withing each group
-       s <- (rowsum(self$data^2,self$cl0) - (1/private$nk) * (rowsum(self$data,self$cl0))^2) / (private$nk - 1)
-       s[private$nk == 1] <- 0
-       s <- sqrt(sum(s*(private$nk - 1))/(private$n - private$k))
-     } else {
-       # if no grouping (one guy per class0) normalize at the vector scale 
-       s <- sd(self$data)
-     }
-     self$data <- (self$data - mean(self$data))/s
-  }
-)
-
-fusedANOVA$set("public", "get_path", 
-  function(args) {
-    mean_k <- rowsum(self$data, self$cl0)/private$nk
-    self$order <- order(mean_k)
-
-    slopes <- get_slopes(mean_k[self$order], private$nk[self$order], self$weighting, args$gamma, args$W)
-    out    <- fuse(mean_k[self$order], slopes, private$nk[self$order]) 
-
-    self$path <- out$path
-    self$merge <- out$merge
-    
-    hc <- list(merge = self$merge, height = self$penalties, labels = self$order, order = out$order)
-    class(hc) <- "hclust"
-    
-    self$hclust <- hc
-    invisible(self)
-  }
-)
-
-fusedANOVA$set("public", "cut_tree", 
-  function(heights = NULL) {
-    if (is.null(heights)) {
-      heights <- self$penalties
-    } else {
-      stopifnot(all(heights %in% fusion$lambda))
-    }
-    heights <- sort(unique(heights), decreasing = TRUE)        
-
-    cl <- get_clustering(heights, private$fusion$lambda, private$fusion$idown, private$fusion$iup, private$k)
-    cl <- cl[self$order, ]
-    list(cl = cl, heights = heights)
-  }
-)
-
 # fusedANOVA$set("public", "get_slopes2", 
 #   function() {
 #     mean_k <- rowsum(self$data, self$cl0)/private$nk
@@ -109,4 +60,3 @@ fusedANOVA$set("public", "cut_tree",
 #     w
 #   }
 # )
-

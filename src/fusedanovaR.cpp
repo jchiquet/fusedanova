@@ -44,6 +44,7 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
 
   // VARIABLES DECLARATION
   int n = grp_size0.size() ;
+  
   NumericVector lambda       (2 * n - 1) ; 
   NumericVector beta         (2 * n - 1) ;
   NumericVector slope        (2 * n - 1) ;
@@ -53,10 +54,12 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
   IntegerVector grp_low      (2 * n - 1) ;
   IntegerVector grp_high     (2 * n - 1) ;
   IntegerVector grp_size     (2 * n - 1) ;
-  IntegerMatrix merge        (n - 1, 2)  ;
   LogicalVector active       (2 * n - 1) ;
   LogicalVector has_grp_low  (2 * n - 1) ;
   LogicalVector has_grp_high (2 * n - 1) ;
+  
+  IntegerMatrix merge        (n - 1, 2)  ;
+
   priority_queue <Rule, vector<Rule>, RuleComparator> myMinHeap ;
 
   // INITIALIZATION OF THE N-1 GROUPS 
@@ -173,12 +176,10 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
   DataFrame path = DataFrame::create(
         Named("beta"  ) = tail(beta       , n-1),
         Named("lambda") = tail(lambda     , n-1),
-        Named("slope")  = tail(slope      , n-1),
         Named("down"  ) = tail(i_low   + 1, n-1),
         Named("high"  ) = tail(i_high  + 1, n-1),
         Named("split" ) = tail(i_split + 1, n-1)
   );
-  
   
   IntegerVector order = get_order(n, merge, tail(grp_size, n-1));
   

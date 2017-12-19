@@ -69,7 +69,7 @@
 ##'
 ##' @examples \dontrun{
 ##' data(aves)
-##' fa.laplace <- fusedanova(x=aves$weight, class=aves$family, weights="laplace", gamma=5)
+##' fa.laplace <- fusedanova2(x=aves$weight, group=aves$family, gamma=0)
 ##' plot(fa.laplace, labels=aves$order)
 ##'
 ##' fa.ttest <- fusedanova(x=aves$weight, class=aves$family, weights="naivettest")
