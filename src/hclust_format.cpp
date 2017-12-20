@@ -1,13 +1,13 @@
-#include "order.h"
+#include "hclust_format.h"
 
 using namespace Rcpp ;
 
 struct pos_node {
-  int pos;
-  int node;
+  int_fast32_t pos;
+  int_fast32_t node;
 };
 
-IntegerVector get_order(const int N, const IntegerMatrix& merge, const IntegerVector& node_size) {
+IntegerVector hc_order(const int_fast32_t N, const IntegerMatrix& merge, const IntegerVector& node_size) {
   /* Parameters:
   N         : number of data points
   merge     : (N-1)×2 array which specifies the node indices which are merged in each step of the clustering procedure.
@@ -18,13 +18,13 @@ IntegerVector get_order(const int N, const IntegerMatrix& merge, const IntegerVe
   */
   std::vector<pos_node> queue(N/2);
   
-  int parent;
-  int child;
-  int pos = 0;
+  int_fast32_t parent;
+  int_fast32_t child;
+  int_fast32_t pos = 0;
   IntegerVector order (N);
   queue[0].pos = 0;
   queue[0].node = N-2;
-  int idx = 1;
+  int_fast32_t idx = 1;
   
   do {
     --idx;
@@ -53,8 +53,35 @@ IntegerVector get_order(const int N, const IntegerMatrix& merge, const IntegerVe
       queue[idx].node = child-1;
       ++idx;
     }
-
   } while (idx>0);
   
   return(order) ;
+}
+
+IntegerVector hc_merge(const int_fast32_t n, const int_fast32_t group1, const int_fast32_t group2) {
+  /* 
+   * encoding the output to the merge format found in hclust
+   */
+  int_fast32_t merge1, merge2;
+  IntegerVector merge(2);
+  
+  if (group1 >= n) {
+    merge1 = (group1+1)-n;
+  } else {
+    merge1 = -(group1+1);
+  }
+  if (group2 >= n) {
+    merge2 = (group2+1)-n;
+  } else {
+    merge2 = -(group2+1);
+  }
+  if (merge1 < merge2) {
+    merge(0) = merge1;
+    merge(1) = merge2;
+  }
+  else {
+    merge(0) = merge2;
+    merge(1) = merge1;
+  }
+  return(merge);  
 }

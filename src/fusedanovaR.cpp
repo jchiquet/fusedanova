@@ -1,6 +1,6 @@
 #include <bits/stdc++.h>
 #include <stdio.h>
-#include "order.h"
+#include "hclust_format.h"
 
 using namespace Rcpp ;
 using namespace std ;
@@ -11,47 +11,46 @@ struct node {
   double lambda         ; 
   double beta           ;
   double slope          ;
-  int label    ;
-  int i_low    ;
-  int i_split  ;
-  int i_high   ;
-  int grp_low  ;
-  int grp_high ;
-  int grp_size ;
+  int_fast32_t  label    ;
+  int_fast32_t i_low    ;
+  int_fast32_t i_split  ;
+  int_fast32_t i_high   ;
+  int_fast32_t grp_low  ;
+  int_fast32_t grp_high ;
+  int_fast32_t grp_size ;
   bool active           ;
   bool has_grp_low      ;
   bool has_grp_high     ;
 };
 
-double compute_lambda(const node& node1, const node& node2) {
-  return((node1.beta - node2.beta - node1.slope * node1.lambda + node2.slope * node2.lambda) / (node2.slope - node1.slope));
-}
-
-class Rule {
+class Fusion {
   
 private:
   node *node1 ;
   node *node2 ;
   double lambda ;
+  void set_lambda() {
+    lambda = (node1->beta - node2->beta - node1->slope * node1->lambda + node2->slope * node2->lambda) / (node2->slope - node1->slope) ;
+  } ;
   
 public:
-  Rule(node *node1_, node *node2_) : node1(node1_),  node2(node2_) {
-    lambda = compute_lambda(*node1_, *node2_);
+  Fusion(node *node1_, node *node2_) : node1(node1_),  node2(node2_) {
+    set_lambda();
   } ;
-  int label1() {return node1->label ;}  
-  int label2() {return node2->label ;}  
+  int_fast32_t label1() {return node1->label ;}  
+  int_fast32_t label2() {return node2->label ;}  
   double get_lambda() const {return lambda ;}
   bool is_active() const {return(node1->active & node2->active);}
 };
 
-class RuleComparator {
+class UpcomingFusions {
 public:
-  double operator() (const Rule& r1, const Rule& r2) {
+  double operator() (const Fusion& r1, const Fusion& r2) {
     return r1.get_lambda() > r2.get_lambda();
   }
 };
 
-// node merge_nodes(int k, Rule rule) {
+// node merge_nodes(int_fast32_t k, Rule rule) {
 //   
 // };
 
@@ -60,16 +59,16 @@ public:
 List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
 
   // VARIABLES DECLARATION
-  int n = grp_size0.size() ;
+  int_fast32_t n = grp_size0.size() ;
   vector<node> nodes  (2*n - 1)  ; // the vector of the successive nodes in the fusion tree
-  priority_queue <Rule, vector<Rule>, RuleComparator> myMinHeap ; // a heap to handle to fusion events
+  priority_queue <Fusion, vector<Fusion>, UpcomingFusions> CandidateFusions ; // a heap to handle to fusion events
   IntegerMatrix merge (n - 1, 2) ; // a matrix to encode in the hclust format the final fusion tree
 
   NumericVector beta(n-1), lambda(n-1) ;
   IntegerVector down(n-1), high(n-1), split(n-1), sizes(n-1) ;
   
   // INITIALIZATION OF THE FIRST N-1 NODES (INITIAL GROUPS)
-  for (int k=0; k < n; k++) {
+  for (int_fast32_t k=0; k < n; k++) {
     nodes[k].lambda   = 0.0;
     nodes[k].beta     = beta0[k];
     nodes[k].slope    = slope0[k];
@@ -96,25 +95,26 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
   }
   
   // FIRST SET OF RULE BETWEEN THE SUCCSSIVE N-2 PAIRS OF NODES AT THE BOTTOM OF THE TREE
-  for (int k=0; k < (n-1); k++) {
-    if (compute_lambda(nodes[k], nodes[k+1]) > 0)
-      myMinHeap.push(Rule(&nodes[k], &nodes[k+1]));
+  for (int_fast32_t k=0; k < (n-1); k++) {
+    Fusion candidate= Fusion(&nodes[k], &nodes[k+1]);
+    if (candidate.get_lambda() > 0)
+      CandidateFusions.push(candidate);
   }
 
-  // n-1 kS WILL OCCUR  
-  for (int k = n; k < (2*n-1);  k++) {
+  // n-1 FUSIONS WILL OCCUR  
+  for (int_fast32_t k = n; k < (2*n-1);  k++) {
     
     // FIND THE NEXT ACTIVE RULE
-    while (!myMinHeap.top().is_active()) {
-      myMinHeap.pop() ;
+    while (!CandidateFusions.top().is_active()) {
+      CandidateFusions.pop() ;
     }
-    Rule rule_ = myMinHeap.top();
-    myMinHeap.pop() ;
+    Fusion candidate = CandidateFusions.top();
+    CandidateFusions.pop() ;
     
     // MERGE THE TWO FUSING NODES
     // Updating the fields of the DataFrame of the fusing group
-    int group1 = rule_.label1(), group2 = rule_.label2();
-    double lambda_k = rule_.get_lambda();
+    int_fast32_t group1 = candidate.label1(), group2 = candidate.label2();
+    double lambda_k = candidate.get_lambda();
     
     // merge(k, rule_.get_lambda(), rule_.get_group1(), rule_.get_group2(), table) ;
     
@@ -151,37 +151,21 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
     
     // get new rules and add them to the queue
     if (nodes[k].has_grp_low & nodes[nodes[k].grp_low].active) {
-      if (compute_lambda(nodes[nodes[k].grp_low], nodes[k]) > 0)
-        myMinHeap.push(Rule(&nodes[nodes[k].grp_low], &nodes[k]));
+      Fusion candidate= Fusion(&nodes[nodes[k].grp_low], &nodes[k]);
+      if (candidate.get_lambda() > 0)
+        CandidateFusions.push(candidate);
     }
     
     if (nodes[k].has_grp_high & nodes[nodes[k].grp_high].active) {
-      if (compute_lambda(nodes[k], nodes[nodes[k].grp_high]) > 0)
-        myMinHeap.push(Rule(&nodes[k], &nodes[nodes[k].grp_high]));
-    }
-    
-    // outputing in hclust format
-    signed int merge1, merge2;
-    if (group1 >= n) {
-      merge1 = (group1+1)-n;
-    } else {
-      merge1 = -(group1+1);
-    }
-    if (group2 >= n) {
-      merge2 = (group2+1)-n;
-    } else {
-      merge2 = -(group2+1);
-    }
-    if (merge1 < merge2) {
-      merge(k-n,0) = merge1;
-      merge(k-n,1) = merge2;
-    }
-    else {
-      merge(k-n,0) = merge2;
-      merge(k-n,1) = merge1;
+      Fusion candidate= Fusion(&nodes[k], &nodes[nodes[k].grp_high]);
+      if (candidate.get_lambda() > 0)
+        CandidateFusions.push(candidate);
     }
 
-    // output the path 
+    // outputing in hclust merge format
+    merge(k-n,_) = hc_merge(n, group1, group2) ;
+      
+    // outputing the path 
     beta  (k-n) = nodes[k].beta ;
     lambda(k-n) = nodes[k].lambda ;
     down  (k-n) = nodes[k].i_low + 1;
@@ -198,7 +182,7 @@ List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
         Named("split" ) = split
   );
   
-  IntegerVector order = get_order(n, merge, sizes);
+  IntegerVector order = hc_order(n, merge, sizes);
   
   return List::create( Named("path") = path, Named("merge") = merge, Named("order") = order);
   
