@@ -5,7 +5,7 @@
 \alias{fusedanova-class}
 \alias{print,fusedanova-method}
 \alias{show,fusedanova-method}
-\title{Class "fusedanova"}
+\title{Class "fusedanovaS4"}
 \description{
 Class of object returned by the \code{fusedanova} function.
 }

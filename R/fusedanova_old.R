@@ -28,7 +28,7 @@ fusedanova_old <- function(x, class = 1:length(x),
   if (standardize == TRUE && abs(res$table[1,1]) > 10^(-8))
     warning("There may be some approximation errors (Beta(lambda_max) far from 0). You may want to lower the gamma if you are using one.")
   
-  return(new("fusedanova",
+  return(new("fusedanovaS4",
              result = list(res),
              classes = class,
              weights = weights,

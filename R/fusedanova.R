@@ -18,7 +18,7 @@
 ##' @param gamma non-negative scalar; the \eqn{\gamma}{gamma} parameter needed for
 ##' \code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. Default is 0.
 ##'
-##' @param W  a numeric matrix of weights of user defined weights. Default is \co2de{NULL}. 
+##' @param W  a numeric matrix of weights of user defined weights. Default is \code{NULL}. 
 ##' If not \code{NULL}, should be a k x k matrix (with k the initial number of groups) that
 ##' will overwrite the \code{weighting} parameter.
 ##' 
@@ -116,8 +116,60 @@ fusedanova <- function(x, group = 1:length(x),
                   labels = levels(group)[order],
                   order = out$order), class = "hclust")
 
-  res <- list(path = out$path, hc = hc, slopes = slopes)
+  res <- structure(list(x_bar = mean_k, group = group, lambda = out$pathlambda,
+                        path = out$path, hc = hc, call = match.call), class = "fusedanova")
   res
+}
+
+#' 
+#' @export
+#' 
+plot.fusedanova <- function(x, type = c("dendrogram", "BIC"), ...) {
+  stopifnot(inherits(x, "fusedanova"))
+  type <- match.arg(type)
+  if (type == 'dendrogram')
+    plot(x$hc, ...)
+  if (type == 'BIC')
+    cat("\nNot yet implemented")
+}
+
+#' 
+#' @export
+#' 
+logLik.fusedanova <- function(object, ngroups = 1:(nlevels(object$group) - 1), heights = NULL) {
+  groups <- cutree(object$hc, k = ngroups, h = heights)
+  loglik <- apply(groups, 2, loglik.ANOVA, object$x)
+  loglik
+}
+
+#' 
+#' @export
+#' 
+AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL, k=2) {
+  groups <- cutree(object$hc, k = ngroups, h = heights)
+  loglik <- apply(groups, 2, loglik.ANOVA, object$x)
+  df <- apply(groups, 2, function(grp) length(unique(grp)))
+  AIC <- -2 * loglik + k*df 
+  AIC
+}
+
+#' 
+#' @export
+#' 
+BIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL) {
+  BIC <- AIC.fusedanova(object, heights = heights, ngroups = ngroups, k = log(length(object$x)))  
+  BIC
+}
+
+loglik.ANOVA <- function(group, x){
+  n  <- length(x)
+  nk <- tabulate(group)
+  k <- length(nk)
+  betak <- rowsum(x, group)/nk
+  RSS <- sum((x - betak[group])^2)
+  sigma2 <- RSS/(n-k)
+  loglik <- -.5 * (n*log(2*pi) + n*sum(log(sigma2)) + (n-k))
+  loglik
 }
 
 slopes <- function(x, group, gamma = 1) {

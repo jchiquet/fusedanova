@@ -1,3 +1,4 @@
+rm(list=ls())
 library(fusedanova)
 data(aves)
 source("inst/functions_Audrey.R")
@@ -24,7 +25,7 @@ fa2 <- fusedanova(x, group, weighting = weights, gamma = gamma, standardize = st
 print(fa2$path)
 print(fa1_path)
 par(mfrow=c(1,2))
-plot(hc, main ="fa1")
-plot(fa2$hc, main="fa2")
+plot(hc, main ="fused-ANOVA old")
+plot(fa2, main="fused-ANOVA new")
 par()
 

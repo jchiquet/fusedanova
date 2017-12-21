@@ -1,4 +1,4 @@
-##' Class "fusedanova"
+##' Class "fusedanovaS4"
 ##'
 ##' Class of object returned by the \code{fusedanova} function.
 ##'
@@ -49,11 +49,11 @@
 ##' @name fusedanova-class
 ##' @rdname fusedanova-class
 ##'
-##' @exportClass fusedanova
+##' @exportClass fusedanovaS4
 ##' @exportMethod print
 ##' @exportMethod show
 ##'
-setClass("fusedanova",
+setClass("fusedanovaS4",
 	representation = representation(
 		result  = "list", # list of triple (dataframe,vector,vector)
 		classes = "factor",
@@ -64,7 +64,7 @@ setClass("fusedanova",
   )
 )
 
-setMethod("print", "fusedanova", definition =
+setMethod("print", "fusedanovaS4", definition =
    function(x, ...) {
      cat("Fused-ANOVA fit with ", x@weights, "weigths.", x@algorithm, "can occur along the path.\n")
      cat("- number of variables:", length(x@result),"\n")
@@ -73,7 +73,7 @@ setMethod("print", "fusedanova", definition =
    }
 )
 
-setMethod("show", "fusedanova", definition =
+setMethod("show", "fusedanovaS4", definition =
    function(object) {print(object)}
 )
 
@@ -115,7 +115,7 @@ setMethod("show", "fusedanova", definition =
 setGeneric ( name= "dataconvert",
 	def = function (object,...){ standardGeneric ("dataconvert")}
 )
-setMethod("dataconvert", "fusedanova",
+setMethod("dataconvert", "fusedanovaS4",
    function (object, predicted=FALSE, formating = c("df","list")[1], labels =FALSE,...){
      ## set the good format for plot or visualization
      ## for the moment extremely dirty
@@ -238,7 +238,7 @@ setMethod("dataconvert", "fusedanova",
 ##'
 ##' @exportMethod plot
 ##' @export
-setMethod("plot", "fusedanova", definition =
+setMethod("plot", "fusedanovaS4", definition =
           function(x, y,
                    main=paste("Regularization path for variable",varvect),
                    xlab = expression(paste("location in the regularization path  ",lambda)),
@@ -317,7 +317,7 @@ setMethod("plot", "fusedanova", definition =
 ##'
 ##' @importFrom stats predict
 ##' @export
-setMethod("predict", "fusedanova", definition =
+setMethod("predict", "fusedanovaS4", definition =
 	function (object, y= NULL, lambda=NULL, labels = FALSE)  {
 	if (is.null(lambda)){ # no new grid
 		if (length(object@lambdalist)==0){ # no pred was asked when launching fused anova

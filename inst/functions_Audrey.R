@@ -598,26 +598,26 @@ Gamma_BIC = function(Data, gamma_to_try, parallel = TRUE, verb = FALSE){
 ############################################################-
 
 # recuperees du stage de M2
-
-LogLikelihoodDim <- function(data, group){
-  Y <- data
-  n  <- length(Y)
-  p  <- 1
-  K  <- length(unique(group))
-  nk <- tabulate(group)
-  
-  betak <- rowsum(Y, group)/nk
-  RSS <- sum((Y - betak[group])^2)
-  
-  sigma2 <- RSS/(n-K)
-  
-  return(-.5 * (n*p*log(2*pi) + n*sum(log(sigma2)) + (n-K)))
-  
-}
-
-BIC <- function(loglikelihood, nbGroupes, n, p){
-  return(-2*loglikelihood+log(n)*p*nbGroupes)
-}
+# 
+# LogLikelihoodDim <- function(data, group){
+#   Y <- data
+#   n  <- length(Y)
+#   p  <- 1
+#   K  <- length(unique(group))
+#   nk <- tabulate(group)
+#   
+#   betak <- rowsum(Y, group)/nk
+#   RSS <- sum((Y - betak[group])^2)
+#   
+#   sigma2 <- RSS/(n-K)
+#   
+#   return(-.5 * (n*p*log(2*pi) + n*sum(log(sigma2)) + (n-K)))
+#   
+# }
+# 
+# BIC <- function(loglikelihood, nbGroupes, n, p){
+#   return(-2*loglikelihood+log(n)*p*nbGroupes)
+# }
 
 
 hclust.one.dim <- function(n, fa1) {
