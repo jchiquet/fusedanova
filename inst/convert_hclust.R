@@ -7,7 +7,7 @@ set.seed(111)
 # x <- aves$weight
 # group <- aves$family
 # n <- length(unique(group))
-n <- 10
+n <- 20
 x <- rnorm(n)
 group <- 1:n
 
