@@ -5,37 +5,23 @@
 ##' 
 ##' @param x vector of observation for n individuals.
 ##'
-##' @param class vector or factor giving the initial class of each individual. If missing, 
-##' \code{1:length(x)} is used (clustering mode with one individual per class).
+##' @param group vector or factor giving the initial group of each individual. If missing, 
+##' \code{1:length(x)} is used (clustering mode with one individual per group).
 ##'
-##' @param weights character; which type of weights is supposed to be used.
-##' The supported weights are: \code{"default"}, \code{"laplace"}, \code{"gaussian"},
-##'  \code{"adaptive"}, \code{"naivettest"}, \code{"ttest"}, \code{"welch"} and \code{"personal"}. 
-##' See details below. By default, its value is \code{"default"}.
+##' @param weighting character; which type of weights is supposed to be used.
+##' The supported weights are: \code{"laplace"}, \code{"gaussian"} or  \code{"adaptive"}.
+##' See details below. By default, its value is \code{"laplace"}. Ignore if \code{W} is not \code{NULL}.
 ##' 
 ##' @param standardize logical; should the vector be standardized before computation?
-##' Default is \code{TRUE}.
+##' Default is \code{FALSE}. If \code{TRUE}, the vector is centered and scaled according to the pooled variance of initial groups.
 ##' 
-##' @param ... list of additional parameters to control the optimization procedure. Include :
-##' \itemize{%
-##' \item{\code{gamma}: } {non-negative scalar; the \eqn{\gamma}{gamma} parameter needed for
-##' \code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. Default is 1.}
+##' @param gamma non-negative scalar; the \eqn{\gamma}{gamma} parameter needed for
+##' \code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. Default is 0.
 ##'
-##' \item{\code{W}: } {numeric matrix; the matrix of weights needed if the \code{"personal"}
-##' weights were selected. By default, a matrix with zero row and zero column.}
+##' @param W  a numeric matrix of weights of user defined weights. Default is \co2de{NULL}. 
+##' If not \code{NULL}, should be a k x k matrix (with k the initial number of groups) that
+##' will overwrite the \code{weighting} parameter.
 ##' 
-##' \item{\code{checkargs}: }{logical; should arguments be checked to
-##' (hopefully) avoid internal crashes? Default is \code{TRUE}.
-##' Automatically set to \code{FALSE} when a call is made
-##' from cross-validation}
-##'
-##' \item{\code{verbose}: } {boolean; should the code print out its progress. By default, FALSE. }
-##'
-##' \item{\code{mxSplitSize}: } {integer; the maximum size for a group for being checked
-## for eventual splitting. By default, 100.
-##' the cores available. }
-##'
-##' }
 ##'
 ##' @return an object with class \code{fusedanova}, see the
 ##' documentation page \code{\linkS4class{fusedanova}} for details.
@@ -79,81 +65,76 @@
 ##' plot(fa.ada, labels=aves$order)
 ##' }
 ##'
-##' @export
-fusedanova <- function(x, class = 1:length(x),
-                       weights = c("default", "laplace", "gaussian", "adaptive", "personal"),
-                       standardize = FALSE, ...) {
+##' @export 
+fusedanova <- function(x, group = 1:length(x),
+                       weighting = c("laplace", "gaussian", "adaptive"),
+                       gamma = 0, standardize = FALSE, W = NULL) {
   
   ## overwrite default parametrs with user's
-  weights <- match.arg(weights)
-  args <- fusedANOVA_args(weights, standardize, list(...))
-
+  weighting <- match.arg(weighting)
+  if (!is.null(W)) weighting <- "personal" else W <- matrix(0,0,0)
+  # conversion of group ot a factor
+  if (!is.factor(group)) group <- as.factor(group)
+    
+  ## problem dimension
+  n  <- length(x)
+  k  <- length(unique(group))
+  nk <- tabulate(group)
+  
   ## check to partilly avoid crashes of th C++ code
-  stopif(!is.numeric(x)                 , "x must be a numeric vector")
-  stopif(any(is.na(x))                  , "NA value in x not allowed.")
-  stopif(length(x) != length(class)     , "data and class dimensions do not match")
-  stopif(length(unique(class)) == 1     , "y has only one level.")
+  stopif(!is.numeric(x)     , "x must be a numeric vector.")
+  stopif(gamma < 0          , "gamma must be non-negative.")
+  stopif(any(is.na(x))      , "NA value in x not allowed.")
+  stopif(n != length(group) ,  "x and group length do not match")
+  stopif(k == 1             , "x has only one level, and there is no point in fusing one group, isn't it?")
+  if (weighting == "personal") stopif(nrow(W) != n | nrcol(W) != n, "W must be a square matrix.")
   
-  # conversion of class ot a factor
-  if (!is.factor(class)) class <- as.factor(class)
-  
-  # normalization 
-  if (standardize) x <- normalize(x, class)
-
-  res <- calculatepath(x, class, args)
-
-  res <- list(table = res$table, order = res$order)
-  
-  ## small warning on last beta
-  if (standardize == TRUE && abs(res$table[1,1]) > 10^(-8))
-    warning("There may be some approximation errors (Beta(lambda_max) far from 0). You may want to lower the gamma if you are using one.")
-  
-  return(new("fusedanova",
-             result = list(res),
-             classes = class,
-             weights = weights,
-             algorithm = "No Split"))
-  
-}
-
-#########################################
-# Calculate path with or without splits #
-#########################################
-calculatepath <- function(x, group, args) {
-
-  ngroup <- tabulate(group)# vector of number by group
-  xm <- rowsum(x,group)/ngroup
-
-  o <- order(xm)
-  xm <- xm[o] # sort from the smallest beta to the highest
-  ngroup <- ngroup[o]
-
-  slopes <- get_slopes(xm, ngroup, args$weights, args$gamma, args$W)  
-  res  <- fuse_old(xm, slopes, ngroup)
-
-  return(list(table = res, order = o))
-  
-}
-
-#############################
-# normalization of a vector
-#############################
-normalize <- function(x,group){
-  ## if Pooled 
-  if (nlevels(group) == length(x)) {
-    s <- sd(x)
-  } else {
-    n <- length(x)
-    ngroup <- tabulate(group)
-    s <- 1/(ngroup-1)*(rowsum(x^2,group) - (1/ngroup)*(rowsum(x,group))^2)
-    s[which(ngroup == 1)] <- 0
-    if (sum(s)==0){
+  # data standardization
+  if (standardize) {
+    if (k != n) {
+      # if any initial grouping, normalize withing each group
+      s <- (rowsum(x^2,group) - (1/nk) * (rowsum(x,group))^2) / (nk - 1)
+      s[nk == 1] <- 0
+      s <- sqrt(sum(s*(nk - 1))/(n - k))
+    } else {
+      # if no grouping (one guy per class0) normalize at the vector scale
       s <- sd(x)
-    } else{
-      s <- sqrt(sum(s*(ngroup-1))/(n-length(ngroup)))
     }
+    x <- (x - mean(x))/s
   }
-  res <- (x - mean(x))/s
+  
+  ## the vector of means is the 
+  mean_k <- rowsum(x, group)/nk
+  
+  # data compression and ordering
+  order  <- order(mean_k) 
+  slopes <- get_slopes(mean_k[order], nk[order], weighting, gamma, W)
+  out    <- fusedanova_cpp(mean_k[order], slopes, nk[order]) 
+
+  hc <- structure(list(merge  = out$merge,
+                  height = out$path$lambda, 
+                  labels = levels(group)[order],
+                  order = out$order), class = "hclust")
+
+  res <- list(path = out$path, hc = hc, slopes = slopes)
   res
+}
+
+slopes <- function(x, group, gamma = 1) {
+  
+  nk <- tabulate(group)  
+  k <- length(nk)
+  mean_k <- rowsum(x, group)/nk
+  order <- order(mean_k)
+
+  nk <- nk[order]
+  mean_k <- mean_k[order]
+  
+  ## as fast à C++
+  ## Laplace weights (nk.nl exp(- gamma | yk - yl|)), computation in O(n)/O(K)
+  c1 <- rev(cumsum(c(0,rev(nk * exp(-gamma*mean_k))[-k])))
+  c2 <- cumsum(c(0,(nk * exp(gamma*mean_k))[-k]))
+  w <- exp(gamma*mean_k) * c1 - exp(-gamma*mean_k) * c2
+  w
 }
 

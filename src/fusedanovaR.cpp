@@ -56,7 +56,7 @@ public:
 
 //' @export
 // [[Rcpp::export]]
-List fuse(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
+List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0) {
 
   // VARIABLES DECLARATION
   int_fast32_t n = grp_size0.size() ;

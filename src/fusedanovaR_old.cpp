@@ -5,7 +5,7 @@ using namespace Rcpp;
 
 //' @export
 // [[Rcpp::export]]
-DataFrame fuse_old(NumericVector x, NumericVector slopes, NumericVector ngroup){
+DataFrame fusedanova_cpp_old(NumericVector x, NumericVector slopes, NumericVector ngroup){
 
 	Group *G = maketree(&x[0], x.length(), &slopes[0], &ngroup[0]);
 
