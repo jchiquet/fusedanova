@@ -19,15 +19,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // fusedanova_cpp
-List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector grp_size0);
-RcppExport SEXP _fusedanova_fusedanova_cpp(SEXP beta0SEXP, SEXP slope0SEXP, SEXP grp_size0SEXP) {
+List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0);
+RcppExport SEXP _fusedanova_fusedanova_cpp(SEXP beta0SEXP, SEXP slope0SEXP, SEXP size0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type beta0(beta0SEXP);
     Rcpp::traits::input_parameter< NumericVector >::type slope0(slope0SEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type grp_size0(grp_size0SEXP);
-    rcpp_result_gen = Rcpp::wrap(fusedanova_cpp(beta0, slope0, grp_size0));
+    Rcpp::traits::input_parameter< IntegerVector >::type size0(size0SEXP);
+    rcpp_result_gen = Rcpp::wrap(fusedanova_cpp(beta0, slope0, size0));
     return rcpp_result_gen;
 END_RCPP
 }

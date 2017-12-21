@@ -7,8 +7,8 @@ fusedanova_cpp_old <- function(x, slopes, ngroup) {
 }
 
 #' @export
-fusedanova_cpp <- function(beta0, slope0, grp_size0) {
-    .Call('_fusedanova_fusedanova_cpp', PACKAGE = 'fusedanova', beta0, slope0, grp_size0)
+fusedanova_cpp <- function(beta0, slope0, size0) {
+    .Call('_fusedanova_fusedanova_cpp', PACKAGE = 'fusedanova', beta0, slope0, size0)
 }
 
 #' @export
