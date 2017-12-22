@@ -5,16 +5,14 @@
 #include <bits/stdc++.h>
 #include <stdio.h>
 
-# define ZERO 1e-16
-
 class node {
 public:
   double lambda ; 
   double beta   ;
   double slope  ;
   int range     ;
+  int weight    ;
   int size      ;
-  int nsize     ;
   int label     ;
   int idown     ;
   int isplit    ;
@@ -26,7 +24,7 @@ public:
   // Constructors/Destructor
    node() ;
   ~node() ;
-  node(int n, int label_, double beta_, double slope_, int size_) ;
+  node(int n, int label_, double beta_, double slope_, int weight_) ;
 
   // Basic methods for acces
   bool has_down () const {return (down != -1);} ;

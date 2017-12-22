@@ -5,19 +5,6 @@
 
 using namespace Rcpp;
 
-// fusedanova_cpp_old
-DataFrame fusedanova_cpp_old(NumericVector x, NumericVector slopes, NumericVector ngroup);
-RcppExport SEXP _fusedanova_fusedanova_cpp_old(SEXP xSEXP, SEXP slopesSEXP, SEXP ngroupSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type slopes(slopesSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type ngroup(ngroupSEXP);
-    rcpp_result_gen = Rcpp::wrap(fusedanova_cpp_old(x, slopes, ngroup));
-    return rcpp_result_gen;
-END_RCPP
-}
 // fusedanova_cpp
 List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0);
 RcppExport SEXP _fusedanova_fusedanova_cpp(SEXP beta0SEXP, SEXP slope0SEXP, SEXP size0SEXP) {
@@ -28,6 +15,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type slope0(slope0SEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type size0(size0SEXP);
     rcpp_result_gen = Rcpp::wrap(fusedanova_cpp(beta0, slope0, size0));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fusedanova_cpp_old
+DataFrame fusedanova_cpp_old(NumericVector x, NumericVector slopes, NumericVector ngroup);
+RcppExport SEXP _fusedanova_fusedanova_cpp_old(SEXP xSEXP, SEXP slopesSEXP, SEXP ngroupSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type slopes(slopesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ngroup(ngroupSEXP);
+    rcpp_result_gen = Rcpp::wrap(fusedanova_cpp_old(x, slopes, ngroup));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -48,8 +48,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_fusedanova_fusedanova_cpp_old", (DL_FUNC) &_fusedanova_fusedanova_cpp_old, 3},
     {"_fusedanova_fusedanova_cpp", (DL_FUNC) &_fusedanova_fusedanova_cpp, 3},
+    {"_fusedanova_fusedanova_cpp_old", (DL_FUNC) &_fusedanova_fusedanova_cpp_old, 3},
     {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 5},
     {NULL, NULL, 0}
 };

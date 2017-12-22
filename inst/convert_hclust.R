@@ -13,7 +13,7 @@ n <- 10
 x <- rnorm(n)
 group <- 1:n
 
-gamma <- .1
+gamma <- 0
 weights <- "laplace"
 standardize <- TRUE
 

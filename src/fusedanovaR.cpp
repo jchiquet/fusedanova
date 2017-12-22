@@ -5,6 +5,67 @@
 using namespace Rcpp;
 using namespace std;
 
+IntegerMatrix hc_merge2(const vector<node> nodes) {
+  /* 
+   * encoding the output to the merge format found in hclust
+   */
+
+  int n = nodes[0].range ;
+  IntegerMatrix merge(n-1, 2);
+  
+  for (int k = 0; k < (n-1); k++) {
+    int merge1, merge2;
+    if (nodes[nodes[k].down].label >= n ) {
+      merge1 = nodes[nodes[k].down].label + 1 - n;
+    } else {
+      merge1 = -(nodes[nodes[k].down].label + 1);
+    }
+    if (nodes[nodes[k].up].label >= n) {
+      merge2 = nodes[nodes[k].up].label + 1 - n;
+    } else {
+      merge2 = -(nodes[nodes[k].up].label + 1);
+    }
+    std::cout << "merge1:" << merge1 << "merge2:" << merge2 << std::endl;
+    
+    if (merge1 < merge2) {
+      merge(k,0) = merge1;
+      merge(k,1) = merge2;
+    }
+    else {
+      merge(k,0) = merge2;
+      merge(k,1) = merge1;
+    }
+  }
+  print(merge);
+  return(merge);  
+}
+
+DataFrame format_path(const vector<node> nodes) {
+  
+  // Variable to ouput the fusion tree to R
+  int n = nodes[0].range ;
+  NumericVector beta(n-1), lambda(n-1) ;
+  IntegerVector idown(n-1), iup(n-1), isplit(n-1), sizes(n-1) ;
+  
+  for (int k = 0; k < (n-1); k++) {
+    beta   (k) = nodes[n + k].beta       ;
+    lambda (k) = nodes[n + k].lambda     ;
+    idown  (k) = nodes[n + k].idown  + 1 ;
+    iup    (k) = nodes[n + k].iup    + 1 ;
+    isplit (k) = nodes[n + k].isplit + 1 ;
+    sizes  (k) = nodes[n + k].size       ;
+  }
+  
+  return(DataFrame::create(
+      Named("beta"  ) = beta  ,
+      Named("lambda") = lambda,
+      Named("down"  ) = idown ,
+      Named("up"    ) = iup   ,
+      Named("split" ) = isplit,
+      Named("sizes" ) = sizes
+  ));
+}
+
 //' @export
 // [[Rcpp::export]]
 List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0) {
@@ -22,20 +83,14 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
   // a heap to handle to fusion events
   priority_queue <Fusion, vector<Fusion>, UpcomingFusions> CandidateFusions ; 
   
-  // A matrix to encode in the hclust format the final fusion tree
-  IntegerMatrix merge (n - 1, 2) ; 
-
-  // Variable to ouput the fusion tree to R
-  NumericVector beta(n-1), lambda(n-1) ;
-  IntegerVector idown(n-1), iup(n-1), isplit(n-1), sizes(n-1) ;
-  
   // INITIALIZATION OF THE FIRST N-1 NODES (INITIAL GROUPS)
-  // std::cout << "starting initialization" << std::endl;
   for (int k=0; k < n; k++) {
     node node_(n, k, beta0[k], slope0[k], size0[k]) ;
     nodes.push_back(node_) ;
   }
 
+  IntegerMatrix merge(n-1, 2);
+    
   // FIRST SET OF RULES BETWEEN THE SUCCESSIVE N-2 PAIRS OF NODES AT THE BOTTOM OF THE TREE
   for (int k=0; k < (n-1); k++) {
     Fusion candidate = Fusion(&nodes[k], &nodes[k+1]);
@@ -45,7 +100,7 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
 
   // n-1 FUSIONS _MUST_ OCCUR
   for (int k = n; k < (2*n-1);  k++) {
-    std::cout << "Fusion #" << k-n+1 << std::endl;
+    // std::cout << "Fusion #" << k-n+1 << std::endl;
     
     // FIND THE NEXT ACTIVE RULE
     while (!CandidateFusions.top().is_active()) {
@@ -62,14 +117,14 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
     //   break;
     // }
 
-    Fusion candidate = CandidateFusions.top();
+    Fusion fusion = CandidateFusions.top();
     CandidateFusions.pop() ;
 
     // MERGE THE TWO FUSING NODES
-    node node_ = *candidate.node1 + *candidate.node2;
+    node node_ = *fusion.node1 + *fusion.node2;
     node_.label = k;
-    candidate.node1->active = false;
-    candidate.node2->active = false;
+    fusion.node1->active = false;
+    fusion.node2->active = false;
     nodes.push_back(node_) ;
 
     // Update neighbors and check if some new rules must be added to the queue
@@ -95,29 +150,21 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
     }
 
     // outputing in hclust merge format
-    merge(k-n,_) = hc_merge(n, candidate.label1(), candidate.label2()) ;
-      
-    // outputing the path 
-    beta   (k-n) = nodes.back().beta       ;
-    lambda (k-n) = nodes.back().lambda     ;
-    idown  (k-n) = nodes.back().idown + 1  ;
-    iup    (k-n) = nodes.back().iup + 1    ;
-    isplit (k-n) = nodes.back().isplit + 1 ;
-    sizes  (k-n) = nodes.back().nsize      ;
+    merge(k-n,_) = hc_merge(n, fusion.label1(), fusion.label2()) ;
 
   } 
-    
-  DataFrame path = DataFrame::create(
-        Named("beta"  ) = beta  ,
-        Named("lambda") = lambda,
-        Named("down"  ) = idown ,
-        Named("high"  ) = iup   ,
-        Named("split" ) = isplit
-  );
 
-  print(sizes);
-  IntegerVector order = hc_order(n, merge, sizes);
+  // outputing the path 
+  DataFrame path = format_path(nodes) ;  
 
+  // outputing in hclust merge format
+  // A matrix to encode in the hclust format the final fusion tree
+  // IntegerMatrix merge = hc_merge2(nodes) ; 
+  
+  // recovering order for plotting dendrogram  
+  IntegerVector order = hc_order(n, merge, path["sizes"]);
+
+  // Send back everything
   return List::create( Named("path") = path, Named("merge") = merge, Named("order") = order);
   
 }

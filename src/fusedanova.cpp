@@ -7,13 +7,13 @@ node::node(int n        ,
            int label_   , 
            double beta_ ,
            double slope_, 
-           int size_    ) 
+           int weight_  ) 
     : lambda(0.0)    ,
       beta(beta_)    ,
       slope(slope_)  ,
       range(n)       ,
-      size(size_)    ,
-      nsize(1)       ,
+      weight(weight_),
+      size(1)        , 
       label(label_)  ,
       idown(label_)  ,
       isplit(label_) ,
@@ -28,14 +28,14 @@ node::node(int n        ,
 // + operator to fuse two nodes
 node node::operator+ (const node& node_) {
 
-  int size_ = this->size + node_.size ;
+  int weight_ = this->weight + node_.weight ;
   double lambda_ = (this->beta - node_.beta - this->slope * this->lambda + node_.slope * node_.lambda) / (node_.slope - this->slope);
-  double slope_  = (this->size * this->slope + node_.size * node_.slope) / size_ ;
+  double slope_  = (this->weight * this->slope + node_.weight * node_.slope) / weight_ ;
   double beta_   = this->beta + (lambda_ - this->lambda) * this->slope ;
-  node result(this->range, 0, beta_, slope_, size_) ;
+  node result(this->range, 0, beta_, slope_, weight_) ;
   
   result.lambda = lambda_ ;
-  result.nsize  = this->nsize + node_.nsize;
+  result.size  = this->size + node_.size;
   if(this->idown < node_.idown) {
     result.isplit = this->iup   ;
     result.idown  = this->idown ;
