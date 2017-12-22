@@ -1,23 +1,18 @@
 Package: fusedanova
 Type: Package
 Title: Fused-ANOVA
-Version: 0.1-1
-Date: 2017-12-01
-Author: Pierre Gutierrez, Julien Chiquet, Guillem Rigaill, Valentin Dervieux
+Version: 0.2-1
+Date: 2017-12-22
+Author: Julien Chiquet, Valentin Dervieux, Audrey Hulot, Pierre Gutierrez, Guillem Rigaill
 Maintainer: Julien Chiquet <julien.chiquet@inra.fr>
-Description: Fused-ANOVA is a penalized method that solves
-    the one-way ANOVA problem by collapsing the coefficients of K conditions.
-    It reconstructs a balanced tree structure between the condition with a
-    homotopy algorithm in O(K log(K)).
+Description: Fused-ANOVA is a penalized method that solves the one-way ANOVA problem by collapsing the coefficients of K conditions.
+    It reconstructs a balanced tree structure between the condition with a homotopy algorithm in O(K log(K)).
+SystemRequirements: C++11
 License: GPL (>=2)
-Depends:
-    ggplot2
 Imports:
     methods,
     parallel,
     grid,
-    plyr,
-    R6,
     Rcpp
 Suggests:
     testthat

@@ -4,16 +4,18 @@ data(aves)
 source("inst/functions_Audrey.R")
 
 set.seed(111)
-# x <- aves$weight
-# group <- aves$family
-# n <- length(unique(group))
-n <- 20
+x <- aves$weight
+n <- length(x)
+group <- aves$family
+n <- length(tabulate(group))
+
+n <- 10
 x <- rnorm(n)
 group <- 1:n
 
-gamma <- 1
+gamma <- .1
 weights <- "laplace"
-standardize <- FALSE
+standardize <- TRUE
 
 fa1 <- fusedanova_old(x, group, weights = weights, gamma = gamma, standardize = standardize)
 fa1_path <- fa1@result[[1]]$table[fa1@result[[1]]$table$lambda>0, ]
