@@ -5,55 +5,22 @@
 using namespace Rcpp;
 using namespace std;
 
-IntegerMatrix hc_merge2(const vector<node> nodes) {
-  /* 
-   * encoding the output to the merge format found in hclust
-   */
-
-  int n = nodes[0].range ;
-  IntegerMatrix merge(n-1, 2);
-  
-  for (int k = 0; k < (n-1); k++) {
-    int merge1, merge2;
-    if (nodes[nodes[k].down].label >= n ) {
-      merge1 = nodes[nodes[k].down].label + 1 - n;
-    } else {
-      merge1 = -(nodes[nodes[k].down].label + 1);
-    }
-    if (nodes[nodes[k].up].label >= n) {
-      merge2 = nodes[nodes[k].up].label + 1 - n;
-    } else {
-      merge2 = -(nodes[nodes[k].up].label + 1);
-    }
-    std::cout << "merge1:" << merge1 << "merge2:" << merge2 << std::endl;
-    
-    if (merge1 < merge2) {
-      merge(k,0) = merge1;
-      merge(k,1) = merge2;
-    }
-    else {
-      merge(k,0) = merge2;
-      merge(k,1) = merge1;
-    }
-  }
-  print(merge);
-  return(merge);  
-}
-
 DataFrame format_path(const vector<node> nodes) {
   
   // Variable to ouput the fusion tree to R
-  int n = nodes[0].range ;
-  NumericVector beta(n-1), lambda(n-1) ;
-  IntegerVector idown(n-1), iup(n-1), isplit(n-1), sizes(n-1) ;
+  int K = nodes[0].range ;
+  int nfusion = nodes.size()-K ;
+  NumericVector beta(nfusion), lambda(nfusion), slope(nfusion)  ;
+  IntegerVector idown(nfusion), iup(nfusion), isplit(nfusion), sizes(nfusion) ;
   
-  for (int k = 0; k < (n-1); k++) {
-    beta   (k) = nodes[n + k].beta       ;
-    lambda (k) = nodes[n + k].lambda     ;
-    idown  (k) = nodes[n + k].idown  + 1 ;
-    iup    (k) = nodes[n + k].iup    + 1 ;
-    isplit (k) = nodes[n + k].isplit + 1 ;
-    sizes  (k) = nodes[n + k].size       ;
+  for (int k = K; k < nodes.size(); k++) {
+    beta   (k-K) = nodes[k].beta       ;
+    lambda (k-K) = nodes[k].lambda     ;
+    idown  (k-K) = nodes[k].idown  + 1 ;
+    iup    (k-K) = nodes[k].iup    + 1 ;
+    isplit (k-K) = nodes[k].isplit + 1 ;
+    sizes  (k-K) = nodes[k].size       ;
+    slope  (k-K) = nodes[k].slope      ;
   }
   
   return(DataFrame::create(
@@ -62,7 +29,8 @@ DataFrame format_path(const vector<node> nodes) {
       Named("down"  ) = idown ,
       Named("up"    ) = iup   ,
       Named("split" ) = isplit,
-      Named("sizes" ) = sizes
+      Named("sizes" ) = sizes,
+      Named("slopes" ) = slope
   ));
 }
 
@@ -75,7 +43,7 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
   
   // VARIABLES DECLARATION
 
-  // FusionTree myTree (beta0, slope0, size0) ;
+  // FusionTree myTree (beta0, slope0, size0) ; // TODO
   
   // the vector of the successive nodes in the fusion tree
   vector<node> nodes ;  nodes.reserve(2 * n - 1) ;
@@ -89,8 +57,6 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
     nodes.push_back(node_) ;
   }
 
-  IntegerMatrix merge(n-1, 2);
-    
   // FIRST SET OF RULES BETWEEN THE SUCCESSIVE N-2 PAIRS OF NODES AT THE BOTTOM OF THE TREE
   for (int k=0; k < (n-1); k++) {
     Fusion candidate = Fusion(&nodes[k], &nodes[k+1]);
@@ -102,22 +68,19 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
   for (int k = n; k < (2*n-1);  k++) {
     // std::cout << "Fusion #" << k-n+1 << std::endl;
     
-    // FIND THE NEXT ACTIVE RULE
-    while (!CandidateFusions.top().is_active()) {
+    while (!CandidateFusions.top().is_active() & !CandidateFusions.empty()) {
+      std::cout << CandidateFusions.top().get_lambda() << std::endl;
       CandidateFusions.pop() ;
       R_CheckUserInterrupt() ;
     }
-
-    // while (!CandidateFusions.top().is_active() & !CandidateFusions.empty()) {
-    //   CandidateFusions.pop() ;
-    //   R_CheckUserInterrupt() ;
-    // }
-    // if (CandidateFusions.empty()) {
-    //   std::cout << "ouch: no more active fusions" << std::endl;
-    //   break;
-    // }
+    if (CandidateFusions.empty()) {
+      std::cout << "ouch: no more active fusions: you obviously chose a too large gamma" << std::endl;
+      nodes.resize(k);
+      break;
+    }
 
     Fusion fusion = CandidateFusions.top();
+    std::cout << "fusion at" << fusion.get_lambda() << std::endl;
     CandidateFusions.pop() ;
 
     // MERGE THE TWO FUSING NODES
@@ -148,22 +111,20 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
           CandidateFusions.push(candidate_);
       }
     }
-
-    // outputing in hclust merge format
-    merge(k-n,_) = hc_merge(n, fusion.label1(), fusion.label2()) ;
-
-  } 
+  } // end fusion loop
 
   // outputing the path 
-  DataFrame path = format_path(nodes) ;  
+  DataFrame path = format_path(nodes) ;
 
   // outputing in hclust merge format
-  // A matrix to encode in the hclust format the final fusion tree
-  // IntegerMatrix merge = hc_merge2(nodes) ; 
+  IntegerMatrix merge = hc_merge(nodes) ;
+  
+  print(merge);
   
   // recovering order for plotting dendrogram  
-  IntegerVector order = hc_order(n, merge, path["sizes"]);
+  IntegerVector order = hc_order(merge, path["sizes"]);
 
+  print(order) ;
   // Send back everything
   return List::create( Named("path") = path, Named("merge") = merge, Named("order") = order);
   

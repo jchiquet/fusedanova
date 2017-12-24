@@ -3,9 +3,9 @@
 
 #include <Rcpp.h>
 #include <vector>
+#include "fusedanova.h"
 
-Rcpp::IntegerVector hc_order(const int_fast32_t, const Rcpp::IntegerMatrix&, const Rcpp::IntegerVector&) ;
-Rcpp::IntegerVector hc_merge(const int_fast32_t, const int_fast32_t, const int_fast32_t) ;
+Rcpp::IntegerVector hc_order(const Rcpp::IntegerMatrix&, const Rcpp::IntegerVector&) ;
+Rcpp::IntegerMatrix hc_merge(const std::vector<node>) ;
   
 #endif
-  

@@ -9,11 +9,11 @@ n <- length(x)
 group <- aves$family
 n <- length(tabulate(group))
 
-n <- 10
-x <- rnorm(n)
-group <- 1:n
+# n <- 10
+# x <- rnorm(n)
+# group <- 1:n
 
-gamma <- 0
+gamma <- 1
 weights <- "laplace"
 standardize <- TRUE
 

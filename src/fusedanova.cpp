@@ -18,6 +18,8 @@ node::node(int n        ,
       idown(label_)  ,
       isplit(label_) ,
       iup(label_)    ,
+      parent1(label_),
+      parent2(label_),
       active(true) 
   {
     if (label == 0  ) down = -1; else  down = label - 1;
@@ -36,6 +38,8 @@ node node::operator+ (const node& node_) {
   
   result.lambda = lambda_ ;
   result.size  = this->size + node_.size;
+  result.parent1 = this->label;
+  result.parent2 = node_.label;
   if(this->idown < node_.idown) {
     result.isplit = this->iup   ;
     result.idown  = this->idown ;

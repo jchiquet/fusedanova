@@ -19,6 +19,8 @@ public:
   int iup       ;
   int down      ;
   int up        ;
+  int parent1   ;
+  int parent2   ;
   bool active   ;
 
   // Constructors/Destructor
@@ -53,7 +55,7 @@ public:
 class UpcomingFusions {
 public:
   double operator() (const Fusion& r1, const Fusion& r2) {
-    return r1.get_lambda() > r2.get_lambda();
+    return r1.get_lambda() >= r2.get_lambda();
   }
 };
 
