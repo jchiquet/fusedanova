@@ -13,9 +13,9 @@ n <- length(tabulate(group))
 # x <- rnorm(n)
 # group <- 1:n
 
-gamma <- 1
+gamma <- .2
 weights <- "laplace"
-standardize <- TRUE
+standardize <- FALSE
 
 fa1 <- fusedanova_old(x, group, weights = weights, gamma = gamma, standardize = standardize)
 fa1_path <- fa1@result[[1]]$table[fa1@result[[1]]$table$lambda>0, ]

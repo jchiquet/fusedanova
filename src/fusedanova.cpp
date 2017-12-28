@@ -1,66 +1,169 @@
-#include "fusedanova.h"
+// [[Rcpp::plugins(cpp11)]]
+#include "FusionTree.h"
 
-// Constructor/Destructor
-node:: node() {};
-node::~node() {};
-node::node(int n        ,
-           int label_   , 
-           double beta_ ,
-           double slope_, 
-           int weight_  ) 
-    : lambda(0.0)    ,
-      beta(beta_)    ,
-      slope(slope_)  ,
-      range(n)       ,
-      weight(weight_),
-      size(1)        , 
-      label(label_)  ,
-      idown(label_)  ,
-      isplit(label_) ,
-      iup(label_)    ,
-      parent1(label_),
-      parent2(label_),
-      active(true) 
-  {
-    if (label == 0  ) down = -1; else  down = label - 1;
-    if (label == n-1) up   = -1; else  up   = label + 1;
-  } 
-;
+using namespace Rcpp;
+using namespace std;
 
-// + operator to fuse two nodes
-node node::operator+ (const node& node_) {
-
-  int weight_ = this->weight + node_.weight ;
-  double lambda_ = (this->beta - node_.beta - this->slope * this->lambda + node_.slope * node_.lambda) / (node_.slope - this->slope);
-  double slope_  = (this->weight * this->slope + node_.weight * node_.slope) / weight_ ;
-  double beta_   = this->beta + (lambda_ - this->lambda) * this->slope ;
-  node result(this->range, 0, beta_, slope_, weight_) ;
+DataFrame format_path(const vector<node> nodes) {
   
-  result.lambda = lambda_ ;
-  result.size  = this->size + node_.size;
-  result.parent1 = this->label;
-  result.parent2 = node_.label;
-  if(this->idown < node_.idown) {
-    result.isplit = this->iup   ;
-    result.idown  = this->idown ;
-    result.iup    = node_.iup   ;
-    result.down   = this->down  ;
-    result.up     = node_.up    ;
-  } else {
-    result.isplit = node_.iup   ; 
-    result.idown  = node_.idown ;
-    result.iup    = this->iup   ;
-    result.down   = node_.down  ;
-    result.up     = this->up    ;
+  // Variable to ouput the fusion tree to R
+  int K = nodes[0].range ;
+  int nfusion = nodes.size()-K ;
+  NumericVector beta(nfusion), lambda(nfusion), slope(nfusion)  ;
+  IntegerVector idown(nfusion), iup(nfusion), isplit(nfusion), sizes(nfusion) ;
+  
+  for (int k = K; k < nodes.size(); k++) {
+    beta   (k-K) = nodes[k].beta       ;
+    lambda (k-K) = nodes[k].lambda     ;
+    idown  (k-K) = nodes[k].idown  + 1 ;
+    iup    (k-K) = nodes[k].iup    + 1 ;
+    isplit (k-K) = nodes[k].isplit + 1 ;
+    sizes  (k-K) = nodes[k].size       ;
+    slope  (k-K) = nodes[k].slope      ;
   }
   
-  return(result);  
-};
-  
-Fusion::Fusion(node *node1_, node *node2_) 
-  : node1(node1_),  node2(node2_) 
-  {
-    lambda = (node1->beta - node2->beta - node1->slope * node1->lambda + node2->slope * node2->lambda) / (node2->slope - node1->slope) ;
-  } 
-;
+  return(DataFrame::create(
+      Named("beta"  ) = beta  ,
+      Named("lambda") = lambda,
+      Named("down"  ) = idown ,
+      Named("up"    ) = iup   ,
+      Named("split" ) = isplit,
+      Named("sizes" ) = sizes,
+      Named("slopes" ) = slope
+  ));
+}
 
+//' @export
+// [[Rcpp::export]]
+List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0) {
+
+  // VARIABLES DECLARATION
+
+  FusionTree myTree (beta0, slope0, size0) ;
+
+  // n-1 FUSIONS _MUST_ OCCUR
+  for (int k = myTree.K; k < (2*myTree.K - 1);  k++) {
+    // std::cout << "Fusion #" << k-n+1 << std::endl;
+    
+    while (!myTree.CandidateFusions.top().is_active() & !myTree.CandidateFusions.empty()) {
+      myTree.CandidateFusions.pop() ;
+    }
+    if (myTree.CandidateFusions.empty()) {
+      std::cout << "ouch: no more active fusions: you obviously chose a too large gamma" << std::endl;
+      myTree.nodes.resize(k);
+      break;
+    }
+
+    Fusion fusion = myTree.CandidateFusions.top();
+    myTree.CandidateFusions.pop() ;
+
+    // MERGE THE TWO FUSING NODES
+    myTree.fuse(k, fusion) ;
+
+    // Update neighbors and check if some new rules must be added to the queue
+    myTree.update();
+  } // end fusion loop
+
+  // outputing the path 
+  myTree.export_path() ;
+
+  // outputing in hclust merge format
+  myTree.export_merge() ;
+
+  // recovering order for plotting dendrogram  
+  myTree.export_order() ;
+
+  // Send back everything
+  return List::create( Named("path")  = myTree.path,
+                       Named("merge") = myTree.merge,
+                       Named("order") = myTree.order);
+  
+}
+
+// List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0) {
+//   
+//   // Problem Dimension
+//   int n = size0.size() ;
+//   
+//   // VARIABLES DECLARATION
+//   
+//   // FusionTree myTree (beta0, slope0, size0) ; // TODO
+//   
+//   // the vector of the successive nodes in the fusion tree
+//   vector<node> nodes ;  nodes.reserve(2 * n - 1) ;
+//   
+//   // a heap to handle to fusion events
+//   priority_queue <Fusion, vector<Fusion>, UpcomingFusions> CandidateFusions ; 
+//   
+//   // INITIALIZATION OF THE FIRST N-1 NODES (INITIAL GROUPS)
+//   for (int k=0; k < n; k++) {
+//     node node_(n, k, beta0[k], slope0[k], size0[k]) ;
+//     nodes.push_back(node_) ;
+//   }
+//   
+//   // FIRST SET OF RULES BETWEEN THE SUCCESSIVE N-2 PAIRS OF NODES AT THE BOTTOM OF THE TREE
+//   for (int k=0; k < (n-1); k++) {
+//     Fusion candidate = Fusion(&nodes[k], &nodes[k+1]);
+//     if (candidate.get_lambda() >= 0)
+//       CandidateFusions.push(candidate);
+//   }
+//   
+//   // n-1 FUSIONS _MUST_ OCCUR
+//   for (int k = n; k < (2*n-1);  k++) {
+//     // std::cout << "Fusion #" << k-n+1 << std::endl;
+//     
+//     while (!CandidateFusions.top().is_active() & !CandidateFusions.empty()) {
+//       CandidateFusions.pop() ;
+//     }
+//     if (CandidateFusions.empty()) {
+//       std::cout << "ouch: no more active fusions: you obviously chose a too large gamma" << std::endl;
+//       nodes.resize(k);
+//       break;
+//     }
+//     
+//     Fusion fusion = CandidateFusions.top();
+//     CandidateFusions.pop() ;
+//     
+//     // MERGE THE TWO FUSING NODES
+//     node node_ = *fusion.node1 + *fusion.node2;
+//     node_.label = k;
+//     fusion.node1->active = false;
+//     fusion.node2->active = false;
+//     nodes.push_back(node_) ;
+//     
+//     // Update neighbors and check if some new rules must be added to the queue
+//     
+//     // down neighbor...
+//     if (nodes.back().has_down()) {
+//       nodes[nodes.back().down ].up   =  nodes.size() - 1 ;
+//       if (nodes[nodes.back().down].active) {
+//         Fusion candidate_ = Fusion(&nodes[nodes.back().down], &nodes.back());
+//         if (candidate_.get_lambda() >= 0)
+//           CandidateFusions.push(candidate_);
+//       }
+//     }
+//     
+//     // up neighbor...
+//     if (nodes.back().has_up()) {
+//       nodes[nodes.back().up   ].down =  nodes.size() - 1 ;
+//       if (nodes[nodes.back().up].active) {
+//         Fusion candidate_ = Fusion(&nodes.back(), &nodes[nodes.back().up]);
+//         if (candidate_.get_lambda() >= 0)
+//           CandidateFusions.push(candidate_);
+//       }
+//     }
+//   } // end fusion loop
+//   
+//   // outputing the path 
+//   DataFrame path = format_path(nodes) ;
+//   
+//   // outputing in hclust merge format
+//   IntegerMatrix merge = hc_merge(nodes) ;
+//   
+//   // recovering order for plotting dendrogram  
+//   IntegerVector order = hc_order(merge, path["sizes"]);
+//   
+//   // Send back everything
+//   return List::create( Named("path") = path, Named("merge") = merge, Named("order") = order);
+//   
+// }

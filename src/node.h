@@ -1,9 +1,5 @@
-#ifndef _fusedanova_H
-#define _fusedanova_H
-
-#include <Rcpp.h>
-#include <bits/stdc++.h>
-#include <stdio.h>
+#ifndef _node_H
+#define _node_H
 
 class node {
 public:
@@ -46,8 +42,8 @@ public:
     // Constructor
   Fusion(node *node1_, node *node2_) ; 
   // Getter
-  int_fast32_t label1() {return node1->label ;}  
-  int_fast32_t label2() {return node2->label ;}  
+  int label1() {return node1->label ;}  
+  int label2() {return node2->label ;}  
   double get_lambda() const {return lambda ;}
   bool is_active() const {return(node1->active & node2->active);}
 };
@@ -58,15 +54,5 @@ public:
     return r1.get_lambda() >= r2.get_lambda();
   }
 };
-
-// class FusionTree {
-// public:
-//   
-//   std::vector<node> nodes ;
-// 
-//   // constructor
-//   FusionTree(const Rcpp::NumericVector beta0, const Rcpp::NumericVector slope0, const Rcpp::IntegerVector size0) {} ;
-// 
-// };
 
 #endif        
