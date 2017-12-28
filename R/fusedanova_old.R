@@ -1,4 +1,8 @@
+##' Fit a Fused ANOVA model with old version of the package
 ##'
+##' Adjust a penalized ANOVA model with Fused-LASSO (or Total Variation) penality, 
+##' ie. a sum of weighted \eqn{\ell_1}{l1}-norm on the difference of each coefficient. 
+##' 
 ##' @export
 fusedanova_old <- function(x, class = 1:length(x),
                            weights = c("default", "laplace", "gaussian", "adaptive", "personal"),
@@ -28,8 +32,7 @@ fusedanova_old <- function(x, class = 1:length(x),
   if (standardize == TRUE && abs(res$table[1,1]) > 10^(-8))
     warning("There may be some approximation errors (Beta(lambda_max) far from 0). You may want to lower the gamma if you are using one.")
   
-  return(new("fusedanovaS4",
-             result = list(res),
+  return(list(result = list(res),
              classes = class,
              weights = weights,
              algorithm = "No Split"))

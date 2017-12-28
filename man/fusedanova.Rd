@@ -59,20 +59,13 @@ ie. a sum of weighted \eqn{\ell_1}{l1}-norm on the difference of each coefficien
 \examples{
 \dontrun{
 data(aves)
-fa.laplace <- fusedanova2(x=aves$weight, group=aves$family, gamma=0)
-plot(fa.laplace, labels=aves$order)
+fa.laplace <- fusedanova2(aves$weight, aves$family, gamma=0)
+plot(fa.laplace)
 
-fa.ttest <- fusedanova(x=aves$weight, class=aves$family, weights="naivettest")
-plot(fa.ttest, labels=aves$order)
-
-fa.ada <- fusedanova(x=aves$weight, class=aves$family, weights="adaptive", gamma=2)
-plot(fa.ada, labels=aves$order)
+fa.ada <- fusedanova(aves$weight, aves$family, weights="adaptive", gamma=2)
+plot(fa.ada)
 }
 
-}
-\seealso{
-See also \code{\linkS4class{fusedanova}},
-\code{\link{plot,fusedanova-method}} and \code{\link{cv.fa}}.
 }
 \keyword{models,}
 \keyword{regression}

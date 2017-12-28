@@ -47,22 +47,17 @@
 ##'
 ##' More details related to the weights are coming...
 ##'
-##' @seealso See also \code{\linkS4class{fusedanova}},
-##' \code{\link{plot,fusedanova-method}} and \code{\link{cv.fa}}.
 ##' @name fusedanova
 ##' @rdname fusedanova
 ##' @keywords models, regression
 ##'
 ##' @examples \dontrun{
 ##' data(aves)
-##' fa.laplace <- fusedanova2(x=aves$weight, group=aves$family, gamma=0)
-##' plot(fa.laplace, labels=aves$order)
+##' fa.laplace <- fusedanova2(aves$weight, aves$family, gamma=0)
+##' plot(fa.laplace)
 ##'
-##' fa.ttest <- fusedanova(x=aves$weight, class=aves$family, weights="naivettest")
-##' plot(fa.ttest, labels=aves$order)
-##'
-##' fa.ada <- fusedanova(x=aves$weight, class=aves$family, weights="adaptive", gamma=2)
-##' plot(fa.ada, labels=aves$order)
+##' fa.ada <- fusedanova(aves$weight, aves$family, weights="adaptive", gamma=2)
+##' plot(fa.ada)
 ##' }
 ##'
 ##' @export 
@@ -121,6 +116,9 @@ fusedanova <- function(x, group = 1:length(x),
   res
 }
 
+#' plot a fusedanova object
+#' 
+#' plot a fusedanova object
 #' 
 #' @export
 #' 
@@ -133,6 +131,9 @@ plot.fusedanova <- function(x, type = c("dendrogram", "BIC"), ...) {
     cat("\nNot yet implemented")
 }
 
+#' compute loglikelihood of a fusedanova object
+#' 
+#' compute loglikelihood of a fusedanova object
 #' 
 #' @export
 #' 
@@ -142,6 +143,9 @@ logLik.fusedanova <- function(object, ngroups = 1:(nlevels(object$group) - 1), h
   loglik
 }
 
+#' AIC of a fusedanova object
+#' 
+#' compute AIC of a fusedanova object
 #' 
 #' @export
 #' 
@@ -153,6 +157,9 @@ AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL
   AIC
 }
 
+#' BIC of a fusedanova object
+#' 
+#' compute BIC of a fusedanova object
 #' 
 #' @export
 #' 
