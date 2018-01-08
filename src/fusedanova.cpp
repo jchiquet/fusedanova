@@ -21,7 +21,7 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
       myTree.CandidateFusions.pop() ;
     }
     if (myTree.CandidateFusions.empty()) {
-      std::cout << "ouch: no more active fusions: you obviously chose a too large gamma" << std::endl;
+      std::cout << "ouch!! no more active fusions: you obviously chose a too large gamma" << std::endl;
       myTree.nodes.resize(k);
       break;
     }

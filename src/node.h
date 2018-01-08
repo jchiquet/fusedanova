@@ -6,7 +6,7 @@ public:
   double lambda ; 
   double beta   ;
   double slope  ;
-  int range     ;
+  int K         ;
   int weight    ;
   int size      ;
   int label     ;

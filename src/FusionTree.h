@@ -12,13 +12,13 @@ class FusionTree {
   // the number of group to fuse
   int K ;
   
-  // the vector of the successive nodes in the fusion tree
+  // vector of the successive nodes in the fusion tree
   std::vector<node> nodes ;
   
-  // a heap to handle to fusion events
+  // heap to handle the fusion events
   std::priority_queue <Fusion, std::vector<Fusion>, UpcomingFusions> CandidateFusions ; 
   
-  // a data frame for outputing the path of fusions
+  // data frame for outputing the path of fusions
   Rcpp::DataFrame path ;
   
   // merge matrix in hclust format

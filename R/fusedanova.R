@@ -53,10 +53,10 @@
 ##'
 ##' @examples \dontrun{
 ##' data(aves)
-##' fa.laplace <- fusedanova2(aves$weight, aves$family, gamma=0)
+##' fa.laplace <- fusedanova(aves$weight, aves$family, gamma=0)
 ##' plot(fa.laplace)
 ##'
-##' fa.ada <- fusedanova(aves$weight, aves$family, weights="adaptive", gamma=2)
+##' fa.ada <- fusedanova(aves$weight, aves$family, "adaptive", gamma=2)
 ##' plot(fa.ada)
 ##' }
 ##'

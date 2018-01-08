@@ -3,7 +3,7 @@
 // Constructor/Destructor
 node:: node() {};
 node::~node() {};
-node::node(int n        ,
+node::node(int K_       ,
            int label_   , 
            double beta_ ,
            double slope_, 
@@ -11,7 +11,7 @@ node::node(int n        ,
     : lambda(0.0)    ,
       beta(beta_)    ,
       slope(slope_)  ,
-      range(n)       ,
+      K(K_)          ,
       weight(weight_),
       size(1)        , 
       label(label_)  ,
@@ -23,7 +23,7 @@ node::node(int n        ,
       active(true) 
   {
     if (label == 0  ) down = -1; else  down = label - 1;
-    if (label == n-1) up   = -1; else  up   = label + 1;
+    if (label == K-1) up   = -1; else  up   = label + 1;
   } 
 ;
 
@@ -34,7 +34,7 @@ node node::operator+ (const node& node_) {
   double lambda_ = (this->beta - node_.beta - this->slope * this->lambda + node_.slope * node_.lambda) / (node_.slope - this->slope);
   double slope_  = (this->weight * this->slope + node_.weight * node_.slope) / weight_ ;
   double beta_   = this->beta + (lambda_ - this->lambda) * this->slope ;
-  node result(this->range, 0, beta_, slope_, weight_) ;
+  node result(this->K, 0, beta_, slope_, weight_) ;
   
   result.lambda = lambda_ ;
   result.size  = this->size + node_.size;
