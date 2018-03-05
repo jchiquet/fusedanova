@@ -111,7 +111,7 @@ fusedanova <- function(x, group = 1:length(x),
                   labels = levels(group)[order],
                   order = out$order), class = "hclust")
 
-  res <- structure(list(x_bar = mean_k, group = group, lambda = out$pathlambda,
+  res <- structure(list(x_bar = mean_k, group = group, lambda = out$pathlambda, order = order, 
                         path = out$path, hc = hc, call = match.call), class = "fusedanova")
   res
 }
