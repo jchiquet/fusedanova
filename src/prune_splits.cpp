@@ -36,9 +36,9 @@ List pruneSplits(List listSetRules, IntegerMatrix orderRules, int n, int p) {
     
     // 0) Initialize groups...
     int index = orderRules(i_rule, 0);
-    int p = orderRules(i_rule, 1);
+    int i_dim = orderRules(i_rule, 1);
     
-    List setRules = listSetRules[p-1];
+    List setRules = listSetRules[i_dim-1];
     IntegerVector order_current = setRules["order"];
     IntegerMatrix rules_current = setRules["rules"];
     

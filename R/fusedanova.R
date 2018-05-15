@@ -90,6 +90,7 @@ fusedanova.data.frame <-
 
     n <- nrow(x)
     p <- ncol(x)
+    k <- length(unique(group))
     
     fa_out <- lapply(1:ncol(x), function(i)
       fusedanova(x[, i], 
@@ -98,16 +99,15 @@ fusedanova.data.frame <-
                  gamma = gamma[i], 
                  standardize = standardize, 
                  W = W))
-    
+
     lSetRules  <- lapply(fa_out, function(fa) 
-      list(rules = select(fa$path, down, split, up) %>% rev() %>% as.matrix(), order = fa$order)
+      list(rules = as.matrix(subset(fa$path, select = c(down, split, up)))[(k-1):1, ], order = fa$order)
     )
     
-    orderRules <- data.frame(V1 = rep(1:(n - 1), p), V2 = rep(1:p, each = n - 1)) %>% 
-      slice(map(fa_out, ~.$path$lambda %>% rev()) %>% unlist() %>% order(decreasing = TRUE)) %>% 
-      as.matrix()
+    o_lambda <- order(sapply(fa_out, function(fa) rev(fa$path$lambda)), decreasing = TRUE)
+    orderRules <- as.matrix(cbind(rep(1:(k - 1), p),rep(1:p, each = k - 1))[o_lambda,])
     
-    res <- pruneSplits(lSetRules, orderRules, n, p)
+    res <- pruneSplits(lSetRules, orderRules, k, p)
     res
   }
 
@@ -220,13 +220,13 @@ BIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL
   BIC
 }
 
-loglik.ANOVA <- function(group, x){
+loglik.ANOVA <- function(group, x) {
   n  <- length(x)
   nk <- tabulate(group)
   k <- length(nk)
   betak <- rowsum(x, group)/nk
   RSS <- sum((x - betak[group])^2)
-  sigma2 <- RSS/(n-k)
+  sigma2 <- RSS/(n - k)
   loglik <- -.5 * (n*log(2*pi) + n*sum(log(sigma2)) + (n-k))
   loglik
 }
