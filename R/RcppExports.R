@@ -7,11 +7,6 @@ fusedanova_cpp <- function(beta0, slope0, size0) {
 }
 
 #' @export
-fusedanova_cpp_old <- function(x, slopes, ngroup) {
-    .Call('_fusedanova_fusedanova_cpp_old', PACKAGE = 'fusedanova', x, slopes, ngroup)
-}
-
-#' @export
 get_slopes <- function(xm, ngroup, weights, gamma, W) {
     .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, weights, gamma, W)
 }

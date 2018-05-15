@@ -18,19 +18,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fusedanova_cpp_old
-DataFrame fusedanova_cpp_old(NumericVector x, NumericVector slopes, NumericVector ngroup);
-RcppExport SEXP _fusedanova_fusedanova_cpp_old(SEXP xSEXP, SEXP slopesSEXP, SEXP ngroupSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type slopes(slopesSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type ngroup(ngroupSEXP);
-    rcpp_result_gen = Rcpp::wrap(fusedanova_cpp_old(x, slopes, ngroup));
-    return rcpp_result_gen;
-END_RCPP
-}
 // get_slopes
 NumericVector get_slopes(NumericVector& xm, IntegerVector& ngroup, std::string weights, double gamma, NumericMatrix& W);
 RcppExport SEXP _fusedanova_get_slopes(SEXP xmSEXP, SEXP ngroupSEXP, SEXP weightsSEXP, SEXP gammaSEXP, SEXP WSEXP) {
@@ -49,7 +36,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_fusedanova_fusedanova_cpp", (DL_FUNC) &_fusedanova_fusedanova_cpp, 3},
-    {"_fusedanova_fusedanova_cpp_old", (DL_FUNC) &_fusedanova_fusedanova_cpp_old, 3},
     {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 5},
     {NULL, NULL, 0}
 };

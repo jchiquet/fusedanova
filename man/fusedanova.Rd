@@ -2,22 +2,37 @@
 % Please edit documentation in R/fusedanova.R
 \name{fusedanova}
 \alias{fusedanova}
+\alias{fusedanova.matrix}
+\alias{fusedanova.data.frame}
+\alias{fusedanova.numeric}
 \title{Fit a Fused ANOVA model}
 \usage{
-fusedanova(x, group = 1:length(x), weighting = c("laplace", "gaussian",
-  "adaptive"), gamma = 0, standardize = FALSE, W = NULL)
+fusedanova(x, ...)
+
+\method{fusedanova}{matrix}(x, group = 1:nrow(x), weighting = c("laplace",
+  "gaussian", "adaptive"), gamma = rep(0, ncol(x)), standardize = TRUE,
+  W = NULL, ...)
+
+\method{fusedanova}{data.frame}(x, group = 1:nrow(x),
+  weighting = c("laplace", "gaussian", "adaptive"), gamma = rep(0, ncol(x)),
+  standardize = TRUE, W = NULL, ...)
+
+\method{fusedanova}{numeric}(x, group = 1:length(x),
+  weighting = c("laplace", "gaussian", "adaptive"), gamma = 0,
+  standardize = TRUE, W = NULL, ...)
 }
 \arguments{
-\item{x}{vector of observation for n individuals.}
+\item{x}{a vector, matrix or data.frame of observation for n individuals.}
 
 \item{group}{vector or factor giving the initial group of each individual. If missing, 
-\code{1:length(x)} is used (clustering mode with one individual per group).}
+each individual are set in a single group is used (clustering mode).}
 
 \item{weighting}{character; which type of weights is supposed to be used.
 The supported weights are: \code{"laplace"}, \code{"gaussian"} or  \code{"adaptive"}.
 See details below. By default, its value is \code{"laplace"}. Ignore if \code{W} is not \code{NULL}.}
 
-\item{gamma}{non-negative scalar; the \eqn{\gamma}{gamma} parameter needed for
+\item{gamma}{non-negative scalar (or vector if x is a matrix or a data frame);
+ the \eqn{\gamma}{gamma} parameter needed for
 \code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. Default is 0.}
 
 \item{standardize}{logical; should the vector be standardized before computation?
