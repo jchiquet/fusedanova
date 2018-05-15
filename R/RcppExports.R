@@ -7,6 +7,11 @@ fusedanova_cpp <- function(beta0, slope0, size0) {
 }
 
 #' @export
+pruneSplits <- function(listSetRules, orderRules, n, p) {
+    .Call('_fusedanova_pruneSplits', PACKAGE = 'fusedanova', listSetRules, orderRules, n, p)
+}
+
+#' @export
 get_slopes <- function(xm, ngroup, weights, gamma, W) {
     .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, weights, gamma, W)
 }

@@ -88,14 +88,28 @@ fusedanova.data.frame <-
            weighting = c("laplace", "gaussian", "adaptive"),
            gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL, ...) {
 
-  res <- lapply(x, fusedanova, 
-          group = group,
-          weighting = weighting,
-          gamma = gamma, 
-          standardize = standardize, 
-          W = W)
-  res
-}
+    n <- nrow(x)
+    p <- ncol(x)
+    
+    fa_out <- lapply(1:ncol(x), function(i)
+      fusedanova(x[, i], 
+                 group = group,
+                 weighting = weighting,
+                 gamma = gamma[i], 
+                 standardize = standardize, 
+                 W = W))
+    
+    lSetRules  <- lapply(fa_out, function(fa) 
+      list(rules = select(fa$path, down, split, up) %>% rev() %>% as.matrix(), order = fa$order)
+    )
+    
+    orderRules <- data.frame(V1 = rep(1:(n - 1), p), V2 = rep(1:p, each = n - 1)) %>% 
+      slice(map(fa_out, ~.$path$lambda %>% rev()) %>% unlist() %>% order(decreasing = TRUE)) %>% 
+      as.matrix()
+    
+    res <- pruneSplits(lSetRules, orderRules, n, p)
+    res
+  }
 
 ##' @rdname fusedanova
 ##' @export 
