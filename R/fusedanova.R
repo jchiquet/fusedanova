@@ -3,10 +3,10 @@
 ##' Adjust a penalized ANOVA model with Fused-LASSO (or Total Variation) penality, 
 ##' ie. a sum of weighted \eqn{\ell_1}{l1}-norm on the difference of each coefficient. 
 ##' 
-##' @param x vector of observation for n individuals.
+##' @param x a vector, matrix or data.frame of observation for n individuals.
 ##'
 ##' @param group vector or factor giving the initial group of each individual. If missing, 
-##' \code{1:length(x)} is used (clustering mode with one individual per group).
+##' each individual are set in a single group is used (clustering mode).
 ##'
 ##' @param weighting character; which type of weights is supposed to be used.
 ##' The supported weights are: \code{"laplace"}, \code{"gaussian"} or  \code{"adaptive"}.
@@ -15,7 +15,8 @@
 ##' @param standardize logical; should the vector be standardized before computation?
 ##' Default is \code{FALSE}. If \code{TRUE}, the vector is centered and scaled according to the pooled variance of initial groups.
 ##' 
-##' @param gamma non-negative scalar; the \eqn{\gamma}{gamma} parameter needed for
+##' @param gamma non-negative scalar (or vector if x is a matrix or a data frame);
+##'  the \eqn{\gamma}{gamma} parameter needed for
 ##' \code{"laplace"}, \code{"gaussian"} and \code{"adaptive"} weights. Default is 0.
 ##'
 ##' @param W  a numeric matrix of weights of user defined weights. Default is \code{NULL}. 
@@ -61,9 +62,46 @@
 ##' }
 ##'
 ##' @export 
-fusedanova <- function(x, group = 1:length(x),
-                       weighting = c("laplace", "gaussian", "adaptive"),
-                       gamma = 0, standardize = FALSE, W = NULL) {
+fusedanova <- function(x, ...) UseMethod("fusedanova", x)
+
+##' @rdname fusedanova
+##' @export 
+fusedanova.matrix <- 
+  function(x, group = 1:nrow(x),
+           weighting = c("laplace", "gaussian", "adaptive"),
+           gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL, ...) {
+  res <- fusedanova.data.frame(
+    as.data.frame(x), 
+    group = group, 
+    weighting = weighting, 
+    gamma = gamma, 
+    standardize = standardize, 
+    W = W, ...
+  )
+  res
+}
+
+##' @rdname fusedanova
+##' @export 
+fusedanova.data.frame <- 
+  function(x, group = 1:nrow(x),
+           weighting = c("laplace", "gaussian", "adaptive"),
+           gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL, ...) {
+
+  res <- lapply(x, fusedanova, 
+          group = group,
+          weighting = weighting,
+          gamma = gamma, 
+          standardize = standardize, 
+          W = W)
+  res
+}
+
+##' @rdname fusedanova
+##' @export 
+fusedanova.numeric <- function(x, group = 1:length(x),
+                        weighting = c("laplace", "gaussian", "adaptive"),
+                        gamma = 0, standardize = TRUE, W = NULL, ...) {
   
   ## overwrite default parametrs with user's
   weighting <- match.arg(weighting)
@@ -179,21 +217,21 @@ loglik.ANOVA <- function(group, x){
   loglik
 }
 
-slopes <- function(x, group, gamma = 1) {
-  
-  nk <- tabulate(group)  
-  k <- length(nk)
-  mean_k <- rowsum(x, group)/nk
-  order <- order(mean_k)
-
-  nk <- nk[order]
-  mean_k <- mean_k[order]
-  
-  ## as fast à C++
-  ## Laplace weights (nk.nl exp(- gamma | yk - yl|)), computation in O(n)/O(K)
-  c1 <- rev(cumsum(c(0,rev(nk * exp(-gamma*mean_k))[-k])))
-  c2 <- cumsum(c(0,(nk * exp(gamma*mean_k))[-k]))
-  w <- exp(gamma*mean_k) * c1 - exp(-gamma*mean_k) * c2
-  w
-}
+# slopes <- function(x, group, gamma = 1) {
+#   
+#   nk <- tabulate(group)  
+#   k <- length(nk)
+#   mean_k <- rowsum(x, group)/nk
+#   order <- order(mean_k)
+# 
+#   nk <- nk[order]
+#   mean_k <- mean_k[order]
+#   
+#   ## as fast à C++
+#   ## Laplace weights (nk.nl exp(- gamma | yk - yl|)), computation in O(n)/O(K)
+#   c1 <- rev(cumsum(c(0,rev(nk * exp(-gamma*mean_k))[-k])))
+#   c2 <- cumsum(c(0,(nk * exp(gamma*mean_k))[-k]))
+#   w <- exp(gamma*mean_k) * c1 - exp(-gamma*mean_k) * c2
+#   w
+# }
 
