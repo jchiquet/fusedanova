@@ -1,7 +1,6 @@
 rm(list=ls())
 library(fusedanova)
 data(aves)
-source("inst/functions_Audrey.R")
 
 fa <- fusedanova(aves$weight, aves$family)
 
