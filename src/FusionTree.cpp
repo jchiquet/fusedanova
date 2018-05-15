@@ -130,7 +130,7 @@ void FusionTree::export_order() {
   Runtime: Θ(N)
   */
     
-    IntegerVector node_size = path["sizes"];
+  IntegerVector node_size = path["sizes"];
   int N = node_size.size() + 1 ;
   std::vector<pos_node> queue(N/2);
   

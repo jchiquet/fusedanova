@@ -118,11 +118,11 @@ List pruneSplits(List listSetRules, IntegerMatrix orderRules, int n, int p) {
   List out;
   out["groupsParent"]        = groupsParent;
   out["groupsIRule"]         = groupsIndexRules;
-  out["groupsNbIndividuals"] =  groupsNbIndividuals;
-  out["groupsNbCalled"]      = groupsNbCalled;
+  // out["groupsNbIndividuals"] = groupsNbIndividuals;
+  // out["groupsNbCalled"]      = groupsNbCalled;
   out["groupsChildCurrent"]  = groupsChildCurrent;
-  out["groupsToVisit"]       = groupsToVisit;
-  out["groupsToSplit"]       = groupsToSplit;
+  // out["groupsToVisit"]       = groupsToVisit;
+  // out["groupsToSplit"]       = groupsToSplit;
   out["currentGroup"]        = currentGroup;
   return(out);
 }
