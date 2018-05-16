@@ -88,7 +88,6 @@ fusedanova.data.frame <-
            weighting = c("laplace", "gaussian", "adaptive"),
            gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL, ...) {
 
-    n <- nrow(x)
     p <- ncol(x)
     k <- length(unique(group))
     
@@ -99,16 +98,35 @@ fusedanova.data.frame <-
                  gamma = gamma[i], 
                  standardize = standardize, 
                  W = W))
-
-    lSetRules  <- lapply(fa_out, function(fa) 
-      list(rules = as.matrix(subset(fa$path, select = c(down, split, up)))[(k-1):1, ], order = fa$order)
-    )
     
-    o_lambda <- order(sapply(fa_out, function(fa) rev(fa$path$lambda)), decreasing = TRUE)
+    ## extract lists of rules and lambdas
+    Rules  <- lapply(fa_out, function(fa) 
+      list(rules = as.matrix(subset(fa$path, select = c(down, split, up)))[(k - 1):1, ],
+           order = fa$order)
+    )
+    Lambdas  <- lapply(fa_out, function(fa) rev(fa$path$lambda))
+    o_lambda <- order(unlist(Lambdas), decreasing = TRUE)
     orderRules <- as.matrix(cbind(rep(1:(k - 1), p),rep(1:p, each = k - 1))[o_lambda,])
     
-    res <- pruneSplits(lSetRules, orderRules, k, p)
+    ## build the aggregating rules 
+    aggregation <- pruneSplits(Rules, orderRules, k, p)
+
+    ## height in the tree are obatined from the lambdas
+    heights <- sapply(rev(aggregation$rule), FUN = function(rule){
+      Lambdas[[orderRules[rule,2]]][orderRules[rule,1]]
+    })
+    
+    ## creating hclust object - in R for the moment...
+    hc <- structure(list(
+      merge  = CreationMatriceMerge(subset(aggregation, select = 1:4)),
+      height = heights[-length(heights)], 
+      labels = levels(group)[fa_out[[1]]$order],
+      order  = OrdreIndividus(aggregation)), class = "hclust")
+    
+    res <- structure(list(x_bar = fa_out[[1]]$x_bar, group = group, lambda = rev(heights), order = fa_out[[1]]$order, 
+                        path = NULL, hc = hc, call = match.call), class = "fusedanova")
     res
+    
   }
 
 ##' @rdname fusedanova

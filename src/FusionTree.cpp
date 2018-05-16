@@ -60,6 +60,7 @@ void FusionTree::export_path() {
   int nfusion = nodes.size() - K ;
   Rcpp::NumericVector beta(nfusion), lambda(nfusion), slope(nfusion)  ;
   Rcpp::IntegerVector idown(nfusion), iup(nfusion), isplit(nfusion), sizes(nfusion) ;
+  Rcpp::IntegerVector label(nfusion), parent1(nfusion), parent2(nfusion), down(nfusion), up(nfusion) ;
   
   for (int k = K; k < nodes.size(); k++) {
     beta   (k-K) = nodes[k].beta       ;
@@ -72,13 +73,14 @@ void FusionTree::export_path() {
   }
   
   path = DataFrame::create(
-    Rcpp::Named("beta"  ) = beta  ,
-    Rcpp::Named("lambda") = lambda,
-    Rcpp::Named("down"  ) = idown ,
-    Rcpp::Named("up"    ) = iup   ,
-    Rcpp::Named("split" ) = isplit,
-    Rcpp::Named("sizes" ) = sizes ,
-    Rcpp::Named("slopes") = slope
+    Rcpp::Named("beta"  )  = beta  ,
+    Rcpp::Named("lambda")  = lambda,
+    Rcpp::Named("down"  )  = idown ,
+    Rcpp::Named("split" )  = isplit,
+    Rcpp::Named("up"    )  = iup   ,
+    Rcpp::Named("label" )  = label,
+    Rcpp::Named("sizes" )  = sizes ,
+    Rcpp::Named("slopes")  = slope
   );
 };
 

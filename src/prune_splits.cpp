@@ -114,16 +114,28 @@ List pruneSplits(List listSetRules, IntegerMatrix orderRules, int n, int p) {
   }
   
   // END CORE //
-  
-  List out;
-  out["groupsParent"]        = groupsParent;
-  out["groupsIRule"]         = groupsIndexRules;
+
+  // finding group order
+  IntegerVector sorted = clone(currentGroup).sort();
+
+  Rcpp::DataFrame out = DataFrame::create(
+    Rcpp::Named("element")  = match(sorted, currentGroup),
+    Rcpp::Named("actif"  )  = seq_len(currentGroup.size()) - 1,
+    Rcpp::Named("up"     )  = groupsParent,
+    Rcpp::Named("down"   )  = groupsChildCurrent,
+    Rcpp::Named("rule"   )  = groupsIndexRules + 1
+  );
+    
+  // List out;
+  // out["groupsParent"]        = groupsParent;
+  // out["groupsIRule"]         = groupsIndexRules;
+  // out["groupsChildCurrent"]  = groupsChildCurrent;
+  // out["currentGroup"]        = currentGroup;
   // out["groupsNbIndividuals"] = groupsNbIndividuals;
   // out["groupsNbCalled"]      = groupsNbCalled;
-  out["groupsChildCurrent"]  = groupsChildCurrent;
   // out["groupsToVisit"]       = groupsToVisit;
   // out["groupsToSplit"]       = groupsToSplit;
-  out["currentGroup"]        = currentGroup;
+  
   return(out);
 }
 

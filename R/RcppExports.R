@@ -2,6 +2,16 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @export
+export_order <- function(merge, size) {
+    .Call('_fusedanova_export_order', PACKAGE = 'fusedanova', merge, size)
+}
+
+#' @export
+export_merge <- function(parent1, parent2) {
+    .Call('_fusedanova_export_merge', PACKAGE = 'fusedanova', parent1, parent2)
+}
+
+#' @export
 fusedanova_cpp <- function(beta0, slope0, size0) {
     .Call('_fusedanova_fusedanova_cpp', PACKAGE = 'fusedanova', beta0, slope0, size0)
 }
