@@ -47,7 +47,7 @@ OrdreIndividus <- function(aggreg_mat){
   parents <- sort(unique(aggreg_mat$up))
   
   # Ordonner les groupes parents et leurs enfants
-  first_order = c(0,group_parents[[1]])# la base, engendre tous les groupes/individus
+  first_order = c(0,group_parents[[1]]) # la base, engendre tous les groupes/individus
   # deux fois 0, normal. c'est voulu.
   
   for (i in 2:length(group_parents)) {

@@ -46,18 +46,16 @@
 ##' \eqn{k}{k}. We denote by \eqn{K}{K} the total number of conditions
 ##' and \eqn{n_k}{n_k} the number of sample in each condition.
 ##'
-##' More details related to the weights are coming...
-##'
 ##' @name fusedanova
 ##' @rdname fusedanova
 ##' @keywords models, regression
 ##'
 ##' @examples \dontrun{
 ##' data(aves)
-##' fa.laplace <- fusedanova(aves$weight, aves$family, gamma=0)
+##' fa.laplace <- fusedanova(aves$weight, aves$family, gamma = 0)
 ##' plot(fa.laplace)
 ##'
-##' fa.ada <- fusedanova(aves$weight, aves$family, "adaptive", gamma=2)
+##' fa.ada <- fusedanova(aves$weight, aves$family, "adaptive", gamma = 2)
 ##' plot(fa.ada)
 ##' }
 ##'
@@ -69,14 +67,14 @@ fusedanova <- function(x, ...) UseMethod("fusedanova", x)
 fusedanova.matrix <- 
   function(x, group = 1:nrow(x),
            weighting = c("laplace", "gaussian", "adaptive"),
-           gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL, ...) {
+           gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL) {
   res <- fusedanova.data.frame(
     as.data.frame(x), 
     group = group, 
     weighting = weighting, 
     gamma = gamma, 
     standardize = standardize, 
-    W = W, ...
+    W = W
   )
   res
 }
@@ -86,7 +84,7 @@ fusedanova.matrix <-
 fusedanova.data.frame <- 
   function(x, group = 1:nrow(x),
            weighting = c("laplace", "gaussian", "adaptive"),
-           gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL, ...) {
+           gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL) {
 
     p <- ncol(x)
     k <- length(unique(group))
@@ -99,7 +97,7 @@ fusedanova.data.frame <-
                  standardize = standardize, 
                  W = W))
     
-    ## extract lists of rules and lambdas
+    ## extract lists of rules and lambdas
     Rules  <- lapply(fa_out, function(fa) 
       list(rules = as.matrix(subset(fa$path, select = c(down, split, up)))[(k - 1):1, ],
            order = fa$order)
@@ -133,57 +131,64 @@ fusedanova.data.frame <-
 ##' @export 
 fusedanova.numeric <- function(x, group = 1:length(x),
                         weighting = c("laplace", "gaussian", "adaptive"),
-                        gamma = 0, standardize = TRUE, W = NULL, ...) {
-  
-  ## overwrite default parametrs with user's
+                        gamma = 0, standardize = TRUE, W = NULL) {
+
+  ## overwrite default parameters with user's
   weighting <- match.arg(weighting)
   if (!is.null(W)) weighting <- "personal" else W <- matrix(0,0,0)
-  # conversion of group ot a factor
+  # conversion of group to a factor
   if (!is.factor(group)) group <- as.factor(group)
     
-  ## problem dimension
+  ## problem dimensions
   n  <- length(x)
   k  <- length(unique(group))
   nk <- tabulate(group)
   
-  ## check to partilly avoid crashes of th C++ code
+  ## check to partially avoid crashes of the C++ code
   stopif(!is.numeric(x)     , "x must be a numeric vector.")
   stopif(gamma < 0          , "gamma must be non-negative.")
-  stopif(any(is.na(x))      , "NA value in x not allowed.")
-  stopif(n != length(group) ,  "x and group length do not match")
-  stopif(k == 1             , "x has only one level, and there is no point in fusing one group, isn't it?")
-  if (weighting == "personal") stopif(nrow(W) != n | nrcol(W) != n, "W must be a square matrix.")
+  stopif(anyNA(x)      , "NA value in x not allowed.")
+  stopif(n != length(group) , "x and group length do not match")
+  stopif(k == 1             , "x only has one level: there's no point in fusing one group, you know...")
+  if (weighting == "personal") stopif(nrow(W) != n | ncol(W) != n, "W must be a square matrix.")
   
   # data standardization
   if (standardize) {
-    if (k != n) {
-      # if any initial grouping, normalize withing each group
-      s <- (rowsum(x^2,group) - (1/nk) * (rowsum(x,group))^2) / (nk - 1)
-      s[nk == 1] <- 0
-      s <- sqrt(sum(s*(nk - 1))/(n - k))
-    } else {
-      # if no grouping (one guy per class0) normalize at the vector scale
-      s <- sd(x)
-    }
+    s <- get_norm(x, group, n, k, nk)
     x <- (x - mean(x))/s
   }
   
-  ## the vector of means is the 
-  mean_k <- rowsum(x, group)/nk
-  
   # data compression and ordering
-  order  <- order(mean_k) 
-  slopes <- get_slopes(mean_k[order], nk[order], weighting, gamma, W)
-  out    <- fusedanova_cpp(mean_k[order], slopes, nk[order]) 
+  mean_k   <- rowsum(x, group)/nk
+  ordering <- order(mean_k) 
+  
+  ## call to fused-ANOVA
+  slopes <- get_slopes(mean_k[ordering], nk[ordering], weighting, gamma, W)
+  out    <- fusedanova_cpp(mean_k[ordering], slopes, nk[ordering]) 
 
-  hc <- structure(list(merge  = out$merge,
-                  height = out$path$lambda, 
-                  labels = levels(group)[order],
-                  order = out$order), class = "hclust")
+  ## creating the hc object
+  hc <- structure(
+    list(
+      merge  = out$merge,
+      height = out$path$lambda, 
+      labels = levels(group)[ordering],
+      order = out$order # order for plotting the dendrogram
+    ), class = "hclust")
 
-  res <- structure(list(x_bar = mean_k, group = group, lambda = out$pathlambda, order = order, 
-                        path = out$path, hc = hc, call = match.call), class = "fusedanova")
-  res
+  ## creating the fused-anova object
+  fa_object <- structure(
+    list(
+      x_bar   = mean_k, 
+      group   = group,
+      lambda  = out$pathlambda,
+      order   = ordering, 
+      path    = out$path, 
+      hc      = hc,
+      call    = match.call
+    ),
+    class = "fusedanova")
+  
+  fa_object
 }
 
 #' plot a fusedanova object
