@@ -86,16 +86,47 @@ fusedanova.data.frame <-
            weighting = c("laplace", "gaussian", "adaptive"),
            gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL) {
 
-    p <- ncol(x)
-    k <- length(unique(group))
     
-    fa_out <- lapply(1:ncol(x), function(i)
-      fusedanova(x[, i], 
-                 group = group,
-                 weighting = weighting,
-                 gamma = gamma[i], 
-                 standardize = standardize, 
-                 W = W))
+    ## overwrite default parameters with user's
+    weighting <- match.arg(weighting)
+    if (!is.null(W)) weighting <- "personal" else W <- matrix(0,0,0)
+    # conversion of group to a factor
+    if (!is.factor(group)) group <- as.factor(group)
+    
+    ## problem dimensions
+    n  <- nrow(x)
+    p  <- ncol(x)
+    k  <- length(unique(group))
+    nk <- tabulate(group)
+    
+    ## check to partially avoid crashes of the C++ code
+    stopif(!is.data.frame(x)  , "x must be a numeric vector.")
+    stopif(length(gamma) != p , "gamma and ncol(x) do not match.")
+    stopif(any(gamma < 0)     , "gamma must be non-negative.")
+    stopif(anyNA(x)           , "NA value in x not allowed.")
+    stopif(n != length(group) , "x and group length do not match")
+    stopif(k == 1             , "x only has one level: there's no point in fusing one group, you know...")
+    if (weighting == "personal") stopif(nrow(W) != n | ncol(W) != n, "W must be a square matrix.")
+    
+    # data standardization
+    if (standardize) {
+      m <- colMeans(x)
+      s <- sapply(x, get_norm, group, n, k, nk)
+      x <- sweep(x, 2, m, "-")
+      x <- sweep(x, 2, s, "/")
+    }
+    
+    ## data compression and ordering
+    mean_k    <- sweep(rowsum(x, group), 1, nk, "/")
+    orderings <- lapply(mean_k, order) 
+    mean_k    <- lapply(1:p, function(j) mean_k[orderings[[j]], j])
+    nk        <- lapply(orderings, function(ordering) nk[ordering])
+    
+    ## call to fused-ANOVA
+    slopes <- mapply(get_slopes, mean_k, nk, gamma, 
+                     MoreArgs = list(weights = weighting, W = W), 
+                     SIMPLIFY = FALSE)
+    fa_out <- mapply(fusedanova_cpp, mean_k, slopes, nk, SIMPLIFY = FALSE)
     
     ## extract lists of rules and lambdas
     Rules  <- lapply(fa_out, function(fa) 
@@ -163,7 +194,7 @@ fusedanova.numeric <- function(x, group = 1:length(x),
   ordering <- order(mean_k) 
   
   ## call to fused-ANOVA
-  slopes <- get_slopes(mean_k[ordering], nk[ordering], weighting, gamma, W)
+  slopes <- get_slopes(mean_k[ordering], nk[ordering], gamma, weighting, W)
   out    <- fusedanova_cpp(mean_k[ordering], slopes, nk[ordering]) 
 
   ## creating the hc object

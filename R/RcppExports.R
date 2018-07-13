@@ -22,7 +22,7 @@ pruneSplits <- function(listSetRules, orderRules, n, p) {
 }
 
 #' @export
-get_slopes <- function(xm, ngroup, weights, gamma, W) {
-    .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, weights, gamma, W)
+get_slopes <- function(xm, ngroup, gamma, weights, W) {
+    .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, gamma, weights, W)
 }
 

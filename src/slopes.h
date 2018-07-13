@@ -7,6 +7,6 @@
 Rcpp::NumericVector get_slopes( Rcpp::NumericVector &xm    ,
                                 Rcpp::IntegerVector &ngroup,
                                 Rcpp::NumericVector &xv    , 
-                                std::string weights        ,
                                 double gamma               ,
+                                std::string weights        ,
                                 Rcpp::NumericMatrix &W     ) ;

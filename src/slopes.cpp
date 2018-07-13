@@ -7,8 +7,8 @@ using namespace std;
 // [[Rcpp::export]]
 NumericVector get_slopes(NumericVector &xm    ,
                          IntegerVector &ngroup,
-                         std::string weights       ,
                          double gamma         ,
+                         std::string weights  ,
                          NumericMatrix &W     ) {
   
   int n = xm.length()  ; 

@@ -2,7 +2,7 @@ rm(list=ls())
 library(fusedanova)
 data(aves)
 
-fa <- fusedanova(aves$weight, aves$family)
+fa <- fusedanova(aves$weight, aves$family, gamma = .1)
 
 print(fa$path)
 par(mfrow=c(1,3))
