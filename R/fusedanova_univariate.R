@@ -6,7 +6,8 @@ fusedanova.numeric <- function(x, group = 1:length(x),
 
   ## overwrite default parameters with user's
   weighting <- match.arg(weighting)
-  if (!is.null(W)) weighting <- "personal" else W <- matrix(0,0,0)
+  if (!is.null(W)) weighting <- "personal" else W <- matrix(0, 0, 0)
+  
   # conversion of group to a factor
   if (!is.factor(group)) group <- as.factor(group)
     
@@ -18,7 +19,7 @@ fusedanova.numeric <- function(x, group = 1:length(x),
   ## check to partially avoid crashes of the C++ code
   stopif(!is.numeric(x)     , "x must be a numeric vector.")
   stopif(gamma < 0          , "gamma must be non-negative.")
-  stopif(anyNA(x)      , "NA value in x not allowed.")
+  stopif(anyNA(x)           , "NA value in x not allowed.")
   stopif(n != length(group) , "x and group length do not match")
   stopif(k == 1             , "x only has one level: there's no point in fusing one group, you know...")
   if (weighting == "personal") stopif(nrow(W) != n | ncol(W) != n, "W must be a square matrix.")
@@ -26,34 +27,32 @@ fusedanova.numeric <- function(x, group = 1:length(x),
   # data standardization
   if (standardize) {
     s <- get_norm(x, group, n, k, nk)
-    x <- (x - mean(x))/s
+    x <- (x - mean(x)) / s
   }
   
   # data compression and ordering
-  mean_k   <- rowsum(x, group)/nk
+  mean_k   <- rowsum(x, group) / nk
   ordering <- order(mean_k) 
   
   ## call to fused-ANOVA
   slopes <- get_slopes(mean_k[ordering], nk[ordering], gamma, weighting, W)
-  out    <- fusedanova_cpp(mean_k[ordering], slopes, nk[ordering]) 
+  fa_out <- fusedanova_cpp(mean_k[ordering], slopes, nk[ordering]) 
 
   ## creating the hc object
   hc <- structure(
     list(
-      merge  = out$merge,
-      height = out$path$lambda, 
+      merge  = fa_out$merge,
+      height = fa_out$path$lambda, 
       labels = levels(group)[ordering],
-      order = out$order # order for plotting the dendrogram
+      order  = fa_out$order # order for plotting the dendrogram
     ), class = "hclust")
 
   ## creating the fused-anova object
   fa_object <- structure(
     list(
-      x_bar   = mean_k, 
-      group   = group,
-      lambda  = out$pathlambda,
+      x_bar   = mean_k,
       order   = ordering, 
-      path    = out$path, 
+      path    = fa_out$path, 
       hc      = hc,
       call    = match.call
     ),
@@ -61,4 +60,3 @@ fusedanova.numeric <- function(x, group = 1:length(x),
   
   fa_object
 }
-

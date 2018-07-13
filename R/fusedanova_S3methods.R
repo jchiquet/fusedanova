@@ -83,13 +83,15 @@ fusedanova.matrix <-
 #' 
 #' @export
 #' 
-plot.fusedanova <- function(x, type = c("dendrogram", "BIC"), ...) {
+plot.fusedanova <- function(x, type = c("dendrogram", "BIC", "AIC"), ...) {
   stopifnot(inherits(x, "fusedanova"))
   type <- match.arg(type)
   if (type == 'dendrogram')
     plot(x$hc, ...)
   if (type == 'BIC')
-    cat("\nNot yet implemented")
+    plot(BIC(x), ...)
+  if (type == 'AIC')
+    plot(AIC(x), ...)
 }
 
 #' compute loglikelihood of a fusedanova object
@@ -98,9 +100,8 @@ plot.fusedanova <- function(x, type = c("dendrogram", "BIC"), ...) {
 #' 
 #' @export
 #' 
-logLik.fusedanova <- function(object, ngroups = 1:(nlevels(object$group) - 1), heights = NULL) {
-  groups <- cutree(object$hc, k = ngroups, h = heights)
-  loglik <- apply(groups, 2, loglik.ANOVA, object$x)
+logLik.fusedanova <- function(object, groups) {
+  loglik <- apply(groups, 2, loglik_ANOVA, object$x_bar)
   loglik
 }
 
@@ -112,7 +113,7 @@ logLik.fusedanova <- function(object, ngroups = 1:(nlevels(object$group) - 1), h
 #' 
 AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL, k=2) {
   groups <- cutree(object$hc, k = ngroups, h = heights)
-  loglik <- apply(groups, 2, loglik.ANOVA, object$x)
+  loglik <- logLik.fusedanova(object, groups)
   df <- apply(groups, 2, function(grp) length(unique(grp)))
   AIC <- -2 * loglik + k*df 
   AIC
@@ -127,17 +128,6 @@ AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL
 BIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL) {
   BIC <- AIC.fusedanova(object, heights = heights, ngroups = ngroups, k = log(length(object$x)))  
   BIC
-}
-
-loglik.ANOVA <- function(group, x) {
-  n  <- length(x)
-  nk <- tabulate(group)
-  k <- length(nk)
-  betak <- rowsum(x, group)/nk
-  RSS <- sum((x - betak[group])^2)
-  sigma2 <- RSS/(n - k)
-  loglik <- -.5 * (n*log(2*pi) + n*sum(log(sigma2)) + (n-k))
-  loglik
 }
 
 # slopes <- function(x, group, gamma = 1) {

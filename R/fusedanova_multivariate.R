@@ -36,7 +36,7 @@ fusedanova.data.frame <-
     
     ## data compression and ordering
     mean_k    <- sweep(rowsum(x, group), 1, nk, "/")
-    orderings <- lapply(mean_k, order) 
+    orderings <- lapply(mean_k, order)
     mean_k    <- lapply(1:p, function(j) mean_k[orderings[[j]], j])
     nk        <- lapply(orderings, function(ordering) nk[ordering])
     
@@ -72,9 +72,6 @@ fusedanova.data.frame <-
     
     res <- structure(
         list(
-          x_bar  = fa_out[[1]]$x_bar,
-          group  = group,
-          lambda = rev(heights),
           order  = fa_out[[1]]$order, 
           path  = NULL,
           hc    = hc, 
