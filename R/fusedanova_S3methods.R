@@ -100,8 +100,9 @@ plot.fusedanova <- function(x, output = c("dendrogram", "BIC", "AIC"), ...) {
 #' 
 #' @export
 #' 
-logLik.fusedanova <- function(object, groups) {
-  loglik <- apply(groups, 2, loglik_ANOVA, object$x_bar)
+logLik.fusedanova <- function(object, ngroups=1:nrow(object$path)) {
+  groups <- cutree(object$hc, k = ngroups)
+  loglik <- apply(groups, 2, loglik_ANOVA, object$means)
   loglik
 }
 
@@ -111,11 +112,9 @@ logLik.fusedanova <- function(object, groups) {
 #' 
 #' @export
 #' 
-AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL, k=2) {
-  groups <- cutree(object$hc, k = ngroups, h = heights)
-  loglik <- logLik.fusedanova(object, groups)
-  df <- apply(groups, 2, function(grp) length(unique(grp)))
-  AIC <- -2 * loglik + k*df 
+AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), k = 2) {
+  loglik <- logLik.fusedanova(object, ngroups)
+  AIC <- -2 * loglik + k * ngroups
   AIC
 }
 
@@ -125,8 +124,8 @@ AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL
 #' 
 #' @export
 #' 
-BIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), heights = NULL) {
-  BIC <- AIC.fusedanova(object, heights = heights, ngroups = ngroups, k = log(length(object$x)))  
+BIC.fusedanova <- function(object, ngroups = 1:nrow(object$path)) {
+  BIC <- AIC.fusedanova(object, ngroups = ngroups, k = log(length(object$means)))  
   BIC
 }
 

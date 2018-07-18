@@ -3,7 +3,7 @@
 fusedanova.numeric <- function(x, 
                         group,
                         weighting = c("laplace", "gaussian", "adaptive"),
-                        gamma = 0, standardize = TRUE, W = NULL) {
+                        gamma = 0, standardize = FALSE, W = NULL) {
 
   ## group vector: default or/and conversion to a factor
   if (missing(group)) {
@@ -34,34 +34,38 @@ fusedanova.numeric <- function(x,
   # data standardization
   if (standardize) {
     s <- get_norm(x, group, n, k, nk)
-    x <- (x - mean(x)) / s
+    m <- mean(x)
+    x <- (x - m) / s
   }
   
   # data compression and ordering
-  mean_k   <- rowsum(x, group) / nk
-  ordering <- order(mean_k)
-  
+  group_means <- rowsum(x, group) / nk
+  ordering    <- order(group_means)
+  group_names <- levels(group)[ordering]
+  group_means <- group_means[ordering]
+  group_sizes <- nk[ordering]
+  names(group_means) <- group_names
+
   ## call to fused-ANOVA
-  slopes <- get_slopes(mean_k[ordering], nk[ordering], gamma, weighting, W)
-  fa_out <- fusedanova_cpp(mean_k[ordering], slopes, nk[ordering]) 
+  slopes <- get_slopes(group_means, group_sizes, gamma, weighting, W)
+  fa_out <- fusedanova_cpp(group_means, slopes, group_sizes) 
 
   ## creating the hc object
   hc <- structure(
     list(
       merge  = fa_out$merge,
       height = fa_out$path$lambda, 
-      labels = levels(group)[ordering],
+      labels = group_names,
       order  = fa_out$order # order for plotting the dendrogram
     ), class = "hclust")
 
   ## creating the fused-anova object
   fa_object <- structure(
     list(
-      x_bar   = mean_k,
-      order   = ordering, 
-      path    = fa_out$path, 
-      hc      = hc,
-      call    = match.call
+      means = group_means,
+      path  = fa_out$path, 
+      hc    = hc,
+      call  = match.call
     ),
     class = "fusedanova")
   
