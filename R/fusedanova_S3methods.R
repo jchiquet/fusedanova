@@ -83,14 +83,14 @@ fusedanova.matrix <-
 #' 
 #' @export
 #' 
-plot.fusedanova <- function(x, type = c("dendrogram", "BIC", "AIC"), ...) {
+plot.fusedanova <- function(x, output = c("dendrogram", "BIC", "AIC"), ...) {
   stopifnot(inherits(x, "fusedanova"))
-  type <- match.arg(type)
-  if (type == 'dendrogram')
+  output <- match.arg(output)
+  if (output == 'dendrogram')
     plot(x$hc, ...)
-  if (type == 'BIC')
+  if (output == 'BIC')
     plot(BIC(x), ...)
-  if (type == 'AIC')
+  if (output == 'AIC')
     plot(AIC(x), ...)
 }
 

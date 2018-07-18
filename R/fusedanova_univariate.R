@@ -1,16 +1,23 @@
 ##' @rdname fusedanova
 ##' @export 
-fusedanova.numeric <- function(x, group = 1:length(x),
+fusedanova.numeric <- function(x, 
+                        group,
                         weighting = c("laplace", "gaussian", "adaptive"),
                         gamma = 0, standardize = TRUE, W = NULL) {
+
+  ## group vector: default or/and conversion to a factor
+  if (missing(group)) {
+    if (is.null(names(x))) {
+      group <- factor(paste0("ind",1:length(x)))
+    } else {
+      group <- factor(names(x))        
+    }
+  } else if (!is.factor(group)) group <- as.factor(group)
 
   ## overwrite default parameters with user's
   weighting <- match.arg(weighting)
   if (!is.null(W)) weighting <- "personal" else W <- matrix(0, 0, 0)
   
-  # conversion of group to a factor
-  if (!is.factor(group)) group <- as.factor(group)
-    
   ## problem dimensions
   n  <- length(x)
   k  <- length(unique(group))
@@ -32,7 +39,7 @@ fusedanova.numeric <- function(x, group = 1:length(x),
   
   # data compression and ordering
   mean_k   <- rowsum(x, group) / nk
-  ordering <- order(mean_k) 
+  ordering <- order(mean_k)
   
   ## call to fused-ANOVA
   slopes <- get_slopes(mean_k[ordering], nk[ordering], gamma, weighting, W)
