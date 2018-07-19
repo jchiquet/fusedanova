@@ -1,0 +1,112 @@
+---
+title: "Introduction to the fused-ANOVA package"
+author: "Julien Chiquet, Pierre Gutierrez, Guillem Rigaill"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Description
+
+Fused-ANOVA is a penalized method that solves the one-way ANOVA problem by collapsing the coefficients of K conditions. It reconstructs a balanced tree structure between the condition with a homotopy algorithm.
+
+For a class of weights implemented here, our homotopy algorithm is in K log(K).  These weights induce a balanced tree structure and simplify the interpretation of the results. The package contains an illustrating phenotypic data set: given a trait, we reconstruct a balanced tree structure and assess  its agreement with the known phylogeny. More in the vignette.
+
+### Problem solved:
+
+The optimization problem solved by fused-ANOVA is
+\begin{equation*}
+  \hat{\beta}_{\lambda} = \arg \min_{\beta} \left\{\sum_{k=1}^K \sum_{i=1}^{n_k} \left(Y_{ik}-\beta_k \right)^2 + \lambda \sum_{k,\ell} w_{k\ell} \left|\beta_k - \beta_\ell \right|\right\}
+\end{equation*}
+where $Y_{ik}$ is the intensity of a continuous random variable for sample $i$ in condition $k$ and $\beta_k$ is the mean parameter of condition $k$. We denote by $K$ the total number of conditions and $n_k$ the number of sample in each condition.
+
+### Choice of weights and performance of the algorithm:
+
+We propose various weights in the fused-penalty (entailing "laplace", "gaussian", "adaptive" - see the corresponding documentation) for which the homotopy algorithm produces a path that contains no split, which is highly desirable since in this case
+  - the order of the \eqn{\beta_k}{beta_k} always matches the order of the empirical mean of each condition;
+  - the recovered structure is a tree which simplifies the interpretation;
+  - the total number of iterations is guaranteed to be small and equal to \eqn{K}{K};
+  - we avoid maximum flow problems whose resolution is  computationally demanding.
+
+Letting $\bar{y}_k = \sum_{i=1}^{n_k} y_{ik} / n_k$ be the initial means in group $k$ (also equal to $\beta_k^0$), we define the three set of weights as follows:
+\begin{equation*}
+\begin{aligned}
+w_{k\ell}^{\text{laplace}}  & = n_k n_\ell \exp\{-\gamma |\bar{y}_k - \bar{y}_\ell| \} \\K
+w_{k\ell}^{\text{Gaussian}} & = n_k n_\ell \exp\{-\gamma (\bar{y}_k - \bar{y}_\ell) ^2 \} \\
+w_{k\ell}^{\text{adaptive}} & = \frac{n_k n_\ell}{|\bar{y}_k - \bar{y}_\ell|^\gamma}  \\
+\end{aligned}
+\end{equation*}
+
+For the "laplace" weight, the associated algorithm is in $\mathcal{O}(K\log(K))$ thanks to a recursion property allowing the computation of the K^2 weights in only $K$ opeartions.
+
+### Technical remarks:
+
+Most of the numerical work is done in `C++`, relying on the **Rcpp** package. 
+
+## Example: reconstruction of bird phylogeny from their weights
+
+This **aves** data set gives the birth weight of for 40 bird families classified in 15 orders and regrouping a total of 184 individuals. It comes from [An Age: The Animal Ageing and Longevity Database](http://genomics.senescence.info/species/).
+
+The corresponding data frame contains 184 rows with three columns: "weight" (the weight in grammes), "family" (a factor with 40 levels) and "order" (a factor with 15 levels):
+
+```{r aves-data}
+library(fusedanova)
+data(aves)
+knitr::kable(head(aves))
+```
+
+By default, $\gamma = 0$  and so all weights reduce to $n_k n_\ell$ and are just equivalent.
+
+
+```{r aves-default}
+fa.default <- fusedanova(aves$weight, aves$order, standardize = TRUE)
+```
+
+If not specify, the weighting scheme is Laplace. As can be seen, using a positive $\gamma$ tends to fused quicker the groups which were closer at the start-up of the path.
+
+```{r aves-laplace}
+fa.laplace <- fusedanova(aves$weight, aves$order, gamma = .25, standardize = TRUE)
+```
+
+Gaussian weights provide a nice interpretation but do not guarante low complexity.
+
+```{r aves-gaussian}
+fa.gaussian <- fusedanova(aves$weight, aves$order, "gaussian", gamma=sqrt(.1), standardize = TRUE)
+```
+
+The adaptive-weigths correspond to the Cas-ANOVA approach by Bondel and Reich, that do not enjoy a low computational complexity but the same kind of statistical guarantees as the lapace weights.
+
+```{r aves-ada}
+fa.adaptive <- fusedanova(aves$weight, aves$order, "adaptive", gamma=exp(.1), standardize=TRUE)
+```
+
+### Plotting dendrogram
+
+An output of fusedanova has class "hclust" so you can rely on the available methods for this kind of object:
+
+```{r dendrogram}
+plot(as.dendrogram(fa.default), type = "triangle", main = "default weights")
+plot(as.dendrogram(fa.laplace), type = "triangle", main = "Laplace weights")
+plot(as.dendrogram(fa.gaussian), type = "triangle", main = "Gaussian weights")
+plot(as.dendrogram(fa.adaptive), type = "triangle", main = "adaptive weights")
+
+cutree(fa.adaptive, c(2, 6))
+```
+
+Package **ape** provides more method for plotting dendrogram in a phylogenetic perpective :
+
+```{r phylo}
+library(ape)
+fa <- fusedanova(aves$weight, gamma=0.25, standardize=TRUE)
+plot(as.phylo(fa), type="fan", tip.color=as.numeric(aves$family))
+```

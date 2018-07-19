@@ -15,9 +15,7 @@ Installation
 devtools::install_github("jchiquet/fusedanova").
 ```
 
-References
-----------
+Reference
+---------
 
 Chiquet J, Gutierrez P, Rigaill G: *Fast tree inference with weighted fusion penalties*, **Journal of Computational and Graphical Statistics** 205–216, 2017. [PDF version](http://www.tandfonline.com/doi/abs/10.1080/10618600.2015.1096789?journalCode=ucgs20)
-
-T. Hocking, J.-P. Vert, F. Bach, and A. Joulin. *Clusterpath: an Algorithm for Clustering using Convex Fusion Penalties*, ICML, 2011.
