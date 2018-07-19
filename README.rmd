@@ -77,19 +77,19 @@ By default, $\gamma = 0$  and so all weights reduce to $n_k n_\ell$ and are just
 
 
 ```{r aves-default}
-fa.default <- fusedanova(aves$weight, aves$order, standardize=TRUE)
+fa.default <- fusedanova(aves$weight, aves$order, standardize = TRUE)
 ```
 
 If not specify, the weighting scheme is Laplace. As can be seen, using a positive $\gamma$ tends to fused quicker the groups which were closer at the start-up of the path.
 
 ```{r aves-laplace}
-fa.laplace <- fusedanova(aves$weight, aves$order, gamma=.25, standardize=TRUE)
+fa.laplace <- fusedanova(aves$weight, aves$order, gamma = .25, standardize = TRUE)
 ```
 
 Gaussian weights provide a nice interpretation but do not guarante low complexity.
 
 ```{r aves-gaussian}
-fa.gaussian <- fusedanova(aves$weight, aves$order, "gaussian", gamma=sqrt(.1), standardize=TRUE)
+fa.gaussian <- fusedanova(aves$weight, aves$order, "gaussian", gamma=sqrt(.1), standardize = TRUE)
 ```
 
 The adaptive-weigths correspond to the Cas-ANOVA approach by Bondel and Reich, that do not enjoy a low computational complexity but the same kind of statistical guarantees as the lapace weights.
@@ -100,16 +100,16 @@ fa.adaptive <- fusedanova(aves$weight, aves$order, "adaptive", gamma=exp(.1), st
 
 ### Plotting dendrogram
 
-Slot 'hc' of a fusedanova object is an "hclust" object, so you can rely on the available methods for this kind of object:
+Slot 'as.hclust.fusednova' method of a fusedanova object convert dastly to an "hclust" object, so you can rely on the available methods for this kind of object:
 
 ```{r dendrogram}
 par(mfrow=c(2,2))
-plot(as.dendrogram(fa.default$hc ), type="triangle", main="default weights")
-plot(as.dendrogram(fa.laplace$hc ), type="triangle", main="Laplace weights")
-plot(as.dendrogram(fa.gaussian$hc), type="triangle", main="Gaussian weights")
-plot(as.dendrogram(fa.adaptive$hc), type="triangle", main="adaptive weights")
+plot(as.dendrogram(as.hclust(fa.default)), type="triangle", main="default weights")
+plot(as.dendrogram(as.hclust(fa.laplace)), type="triangle", main="Laplace weights")
+plot(as.dendrogram(as.hclust(fa.gaussian)), type="triangle", main="Gaussian weights")
+plot(as.dendrogram(as.hclust(fa.adaptive)), type="triangle", main="adaptive weights")
 
-cutree(fa.adaptive$hc, c(2, 6))
+cutree(as.hclust(fa.adaptive), c(2, 6))
 ```
 
 Package **ape** provides more method for plotting dendrogram in a phylogenetic perpective :
@@ -117,8 +117,8 @@ Package **ape** provides more method for plotting dendrogram in a phylogenetic p
 ```{r phylo}
 library(ape)
 fa <- fusedanova(aves$weight, gamma=0.25, standardize=TRUE)
-plot(as.phylo(fa$hc), type="fan", tip.color=as.numeric(aves$family))
-plot(as.phylo(fa$hc), type="fan", tip.color=as.numeric(aves$order))
+plot(as.phylo(as.hclust(fa)), type="fan", tip.color=as.numeric(aves$family))
+plot(as.phylo(as.hclust(fa)), type="fan", tip.color=as.numeric(aves$order))
 ```
 
 

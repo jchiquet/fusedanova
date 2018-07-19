@@ -6,7 +6,7 @@
 ##' @param x a vector, matrix or data.frame of observation for n individuals.
 ##'
 ##' @param group vector or factor giving the initial group of each individual. If missing, 
-##' each individual are set in a single group is used (clustering mode).
+##' each individual are set in a single group (clustering mode).
 ##'
 ##' @param weighting character; which type of weights is supposed to be used.
 ##' The supported weights are: \code{"laplace"}, \code{"gaussian"} or  \code{"adaptive"}.
@@ -23,7 +23,7 @@
 ##' If not \code{NULL}, should be a k x k matrix (with k the initial number of groups) that
 ##' will overwrite the \code{weighting} parameter.
 ##' 
-##' @return an S3 object with class \code{fusedanova}.
+##' @return an S3 object with class \code{hclust}.
 ##'
 ##' The optimization problem solved by fused-ANOVA is
 ##' \if{latex}{\deqn{%
@@ -77,23 +77,9 @@ fusedanova.matrix <-
   res
 }
 
-#' plot a fusedanova object
-#' 
-#' plot a fusedanova object
-#' 
-#' @export
-#' 
-plot.fusedanova <- function(x, ...) {
-  stopifnot(inherits(x, "fusedanova"))
-  plot(as.hclust.fusedanova(x), ...)
-}
-
 #' export to hclust format
 #'
-#' export a fusedanova pobject to an hclust object
-#'
-#' @export
-#'
+#' export a fusedanova_cpp output to an hclust object - internal used only
 as.hclust.fusedanova <- function(object, ...) {
   merge <- export_merge(object$path$parent1, object$path$parent2)
   order <- export_order(merge, object$path$sizes)
@@ -109,57 +95,4 @@ as.hclust.fusedanova <- function(object, ...) {
     ), class = "hclust")
   hc
 }
-
-#' #' compute loglikelihood of a fusedanova object
-#' #' 
-#' #' compute loglikelihood of a fusedanova object
-#' #' 
-#' #' @export
-#' #' 
-#' logLik.fusedanova <- function(object, ngroups=1:nrow(object$path)) {
-#'   groups <- cutree(object$hc, k = ngroups)
-#'   loglik <- apply(groups, 2, loglik_ANOVA, object$means)
-#'   loglik
-#' }
-#' 
-#' #' AIC of a fusedanova object
-#' #' 
-#' #' compute AIC of a fusedanova object
-#' #' 
-#' #' @export
-#' #' 
-#' AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), k = 2) {
-#'   loglik <- logLik.fusedanova(object, ngroups)
-#'   AIC <- -2 * loglik + k * ngroups
-#'   AIC
-#' }
-#' 
-#' #' BIC of a fusedanova object
-#' #' 
-#' #' compute BIC of a fusedanova object
-#' #' 
-#' #' @export
-#' #' 
-#' BIC.fusedanova <- function(object, ngroups = 1:nrow(object$path)) {
-#'   BIC <- AIC.fusedanova(object, ngroups = ngroups, k = log(length(object$means)))  
-#'   BIC
-#' }
-
-# slopes <- function(x, group, gamma = 1) {
-#   
-#   nk <- tabulate(group)  
-#   k <- length(nk)
-#   mean_k <- rowsum(x, group)/nk
-#   order <- order(mean_k)
-# 
-#   nk <- nk[order]
-#   mean_k <- mean_k[order]
-#   
-#   ## as fast à C++
-#   ## Laplace weights (nk.nl exp(- gamma | yk - yl|)), computation in O(n)/O(K)
-#   c1 <- rev(cumsum(c(0,rev(nk * exp(-gamma*mean_k))[-k])))
-#   c2 <- cumsum(c(0,(nk * exp(gamma*mean_k))[-k]))
-#   w <- exp(gamma*mean_k) * c1 - exp(-gamma*mean_k) * c2
-#   w
-# }
 

@@ -7,5 +7,5 @@
 \method{as.hclust}{fusedanova}(object, ...)
 }
 \description{
-export a fusedanova pobject to an hclust object
+export a fusedanova_cpp output to an hclust object - internal used only
 }

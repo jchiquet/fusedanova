@@ -52,7 +52,7 @@ fusedanova.data.frame <-
     )
 
     ### AGGREGATION
-    merged_tree <- mergeTrees(lapply(fa_objs, as.hclust.fusedanova))
+    merged_tree <- mergeTrees(fa_objs)
     merged_tree
 }
 

@@ -24,7 +24,7 @@ fusedanova(x, ...)
 \item{x}{a vector, matrix or data.frame of observation for n individuals.}
 
 \item{group}{vector or factor giving the initial group of each individual. If missing, 
-each individual are set in a single group is used (clustering mode).}
+each individual are set in a single group (clustering mode).}
 
 \item{weighting}{character; which type of weights is supposed to be used.
 The supported weights are: \code{"laplace"}, \code{"gaussian"} or  \code{"adaptive"}.
@@ -42,7 +42,7 @@ If not \code{NULL}, should be a k x k matrix (with k the initial number of group
 will overwrite the \code{weighting} parameter.}
 }
 \value{
-an S3 object with class \code{fusedanova}.
+an S3 object with class \code{hclust}.
 
 The optimization problem solved by fused-ANOVA is
 \if{latex}{\deqn{%

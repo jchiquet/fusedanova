@@ -55,5 +55,5 @@ fusedanova.numeric <- function(x,
          weighting = weighting,
          labels    = group_names, 
          call      = match.call()), class = "fusedanova")
-  fa_object
+  as.hclust.fusedanova(fa_object)
 }
