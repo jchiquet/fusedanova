@@ -3,7 +3,6 @@
 
 using namespace Rcpp;
 
-//' @export
 // [[Rcpp::export]]
 List pruneSplits(List listSetRules, IntegerMatrix orderRules, int n, int p) {
  

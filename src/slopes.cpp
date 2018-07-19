@@ -1,9 +1,12 @@
-#include "slopes.h"
+#include <Rcpp.h>
+#include <string>
+#include <vector>
+
+# define square(x) ((x)*(x))
 
 using namespace Rcpp;
 using namespace std;
 
-//' @export
 // [[Rcpp::export]]
 NumericVector get_slopes(NumericVector &xm    ,
                          IntegerVector &ngroup,

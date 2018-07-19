@@ -1,16 +1,14 @@
 // [[Rcpp::plugins(cpp11)]]
-#include "FusionTree.h"
+#include <Rcpp.h>
 
 using namespace Rcpp;
 using namespace std;
-
 
 struct pos_node {
   int_fast32_t pos;
   int_fast32_t node;
 };
 
-//' @export
 // [[Rcpp::export]]
 Rcpp::IntegerVector export_order(const IntegerMatrix& merge, const IntegerVector& size) {
   // function to recover a correct order of the nodes for the dendrogram (required for hclust object) 
@@ -67,7 +65,6 @@ Rcpp::IntegerVector export_order(const IntegerMatrix& merge, const IntegerVector
   return (order) ;  
 };
 
-//' @export
 // [[Rcpp::export]]
 Rcpp::IntegerMatrix export_merge(const IntegerVector& parent1, const IntegerVector& parent2) {
   

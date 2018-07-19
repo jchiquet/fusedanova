@@ -48,11 +48,13 @@ fusedanova.data.frame <-
       MoreArgs = list(group = group, weighting = weighting, standardize = FALSE, W = W),
       SIMPLIFY = FALSE
     )
-    
     ## list of dendrograms (hclust)
     hc_objs <- lapply(fa_objs, as.hclust.fusedanova)
-
+    hc_objs <- order_hc_list(hc_objs)
+  
     ### AGGREGATION
+##    Rmergetrees::mergeTrees(hc_objs)    
+
     ## extract lists of rules and lambdas
     Rules  <- mapply(function(fa, hc) {
         list(
@@ -62,11 +64,11 @@ fusedanova.data.frame <-
     }, fa_objs, hc_objs, SIMPLIFY = FALSE)
 
     Lambdas  <- lapply(fa_objs, function(fa) rev(fa$path$lambda))
-    
+
     o_lambda <- order(unlist(Lambdas), decreasing = TRUE)
     orderRules <- as.matrix(cbind(rep(1:(k - 1), p),rep(1:p, each = k - 1))[o_lambda,])
-    
-    ## build the aggregating rules 
+
+    ## build the aggregating rules
     aggregation <- pruneSplits(Rules, orderRules, k, p)
 
     ## height in the tree are obatined from the lambdas
@@ -78,16 +80,29 @@ fusedanova.data.frame <-
 ### Is it possible from aggregation?
     # res <- structure(
     #     list(
-    #       labels  = fa_out[[1]]$labels, 
+    #       labels  = fa_out[[1]]$labels,
     #       path  = NULL),
     #     class = "fusedanova")
     # res
-        
+
     ## creating hclust object
     hc <- structure(list(
       merge  = CreationMatriceMerge(subset(aggregation, select = 1:4)),
-      height = heights[-length(heights)], 
+      height = heights[-length(heights)],
       labels = fa_objs[[1]]$labels,
       order  = OrdreIndividus(aggregation)), class = "hclust")
     hc
   }
+
+order_hc_list <- function(hc_list) {
+  ref_labels <- hc_list[[1]]$labels
+  ref_order  <- hc_list[[1]]$order
+  hc_ordered <- lapply(hc_list[-1], function(hc) {
+    hc$labels <- hc$labels[match(ref_labels, hc$labels)]
+    hc$order  <- hc$order [match(ref_order , hc$labels)]
+    hc
+  })
+  hc_ordered <- c(list(hc_list[[1]]), hc_ordered)
+  names(hc_ordered) <- names(hc_list)
+  hc_ordered
+}

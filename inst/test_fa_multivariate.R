@@ -12,3 +12,6 @@ plot(as.hclust(fa_uni1), main = "Sepal")
 plot(as.hclust(fa_uni2), main = "Petal")
 plot(fa_mult, main = "both")
 
+# 
+# hc_list <- list(as.hclust(fa_uni1), as.hclust(fa_uni2))
+# order_hc_list(hc_list)

@@ -4,7 +4,6 @@
 using namespace Rcpp;
 using namespace std;
 
-//' @export
 // [[Rcpp::export]]
 DataFrame fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0) {
 
@@ -40,5 +39,4 @@ DataFrame fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVecto
   myTree.export_path() ;
 
   return myTree.path ;
-  
 }
