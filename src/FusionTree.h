@@ -21,12 +21,6 @@ class FusionTree {
   // data frame for outputing the path of fusions
   Rcpp::DataFrame path ;
   
-  // merge matrix in hclust format
-  Rcpp::IntegerMatrix merge ;
-  
-  // order vector in hclust format (for plotting dendrogram)
-  Rcpp::IntegerVector order ;
-  
   // constructor
   FusionTree(const Rcpp::NumericVector beta0, const Rcpp::NumericVector slope0, const Rcpp::IntegerVector size0) ;
   
@@ -38,9 +32,6 @@ class FusionTree {
   
   // methods to export the path of solution
   void export_path () ;
-  
-  // void export_merge() ;
-  // void export_order() ;
   
 };
 
