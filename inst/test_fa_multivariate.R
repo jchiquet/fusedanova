@@ -3,10 +3,12 @@ library(fusedanova)
 library(tidyverse)
 data(iris)
 
-fa_mult <- fusedanova(select(iris, -Species))
-fa_univ <- fusedanova(pull(iris, Sepal.Length))
+fa_mult <- fusedanova(select(iris, Sepal.Length, Petal.Length))
+fa_uni1 <- fusedanova(pull(iris, Sepal.Length))
+fa_uni2 <- fusedanova(pull(iris, Petal.Length))
 
-par(mfrow = c(1,2))
-plot(fa_univ)
-plot(fa_mult)
+par(mfrow = c(1,3))
+plot(as.hclust(fa_uni1), main = "Sepal")
+plot(as.hclust(fa_uni2), main = "Petal")
+plot(fa_mult, main = "both")
 
