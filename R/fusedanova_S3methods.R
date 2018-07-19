@@ -85,7 +85,7 @@ fusedanova.matrix <-
 #' 
 plot.fusedanova <- function(x, ...) {
   stopifnot(inherits(x, "fusedanova"))
-  plot(x$hc, ...)
+  plot(as.hclust.fusedanova(x), ...)
 }
 
 #' export to hclust format

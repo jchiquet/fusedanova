@@ -18,10 +18,5 @@ trait <- trait[o]
 
 fa <- fusedanova(trait, gamma = 0)
 
-par(mfrow = c(1,2))
 plot(fa, main = "fused-ANOVA tree")
-plot(-2*logLik(fa, 1:50), main = "AIC/BIC", type = "l")
-lines(BIC(fa, 1:50),  col= "blue")
-lines(BIC(fa, 1:50),  col= "red")
-par(mfrow = c(1,1))
 
