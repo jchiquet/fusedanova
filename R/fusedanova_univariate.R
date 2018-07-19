@@ -8,7 +8,7 @@ fusedanova.numeric <- function(x,
   ## group vector: default or/and conversion to a factor
   if (missing(group)) {
     if (is.null(names(x))) {
-      group <- factor(paste0("ind",1:length(x)))
+      group <- factor(paste0(1:length(x)))
     } else {
       group <- factor(names(x))        
     }
