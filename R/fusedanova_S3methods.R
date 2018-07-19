@@ -99,10 +99,13 @@ as.hclust.fusedanova <- function(object, ...) {
   order <- export_order(merge, object$path$sizes)
   hc <- structure(
     list(
-      merge  = merge,
-      height = object$path$lambda, 
-      labels = object$labels,
-      order  = order
+      merge    = merge,
+      height   = object$path$lambda, 
+      labels   = object$labels,
+      order    = order,
+      method   = "fused-ANOVA",
+      dist.method = paste(object$weighting, "weights"),
+      call = object$call
     ), class = "hclust")
   hc
 }

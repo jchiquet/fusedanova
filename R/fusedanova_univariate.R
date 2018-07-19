@@ -50,6 +50,10 @@ fusedanova.numeric <- function(x,
   path   <- fusedanova_cpp(group_means, slopes, group_sizes)
   
   ## creation of the fused-anova object
-  fa_object <- structure(list(path = path, labels = group_names), class = "fusedanova")
+  fa_object <- structure(
+    list(path      = path,
+         weighting = weighting,
+         labels    = group_names, 
+         call      = match.call()), class = "fusedanova")
   fa_object
 }
