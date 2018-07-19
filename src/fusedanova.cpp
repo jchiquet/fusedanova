@@ -6,7 +6,7 @@ using namespace std;
 
 //' @export
 // [[Rcpp::export]]
-List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0) {
+DataFrame fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0) {
 
   // VARIABLES DECLARATION
 
@@ -39,15 +39,6 @@ List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector siz
   // outputing the path 
   myTree.export_path() ;
 
-  // outputing in hclust merge format
-  myTree.export_merge() ;
-
-  // recovering order for plotting dendrogram  
-  myTree.export_order() ;
-
-  // Send back everything
-  return List::create( Named("path")  = myTree.path,
-                       Named("merge") = myTree.merge,
-                       Named("order") = myTree.order);
+  return myTree.path ;
   
 }

@@ -83,51 +83,64 @@ fusedanova.matrix <-
 #' 
 #' @export
 #' 
-plot.fusedanova <- function(x, output = c("dendrogram", "BIC", "AIC"), ...) {
+plot.fusedanova <- function(x, ...) {
   stopifnot(inherits(x, "fusedanova"))
-  output <- match.arg(output)
-  if (output == 'dendrogram')
-    plot(x$hc, ...)
-  if (output == 'BIC')
-    plot(BIC(x), ...)
-  if (output == 'AIC')
-    plot(AIC(x), ...)
+  plot(x$hc, ...)
 }
 
-#' compute loglikelihood of a fusedanova object
-#' 
-#' compute loglikelihood of a fusedanova object
-#' 
+#' export to hclust format
+#'
+#' export a fusedanova pobject to an hclust object
+#'
 #' @export
-#' 
-logLik.fusedanova <- function(object, ngroups=1:nrow(object$path)) {
-  groups <- cutree(object$hc, k = ngroups)
-  loglik <- apply(groups, 2, loglik_ANOVA, object$means)
-  loglik
+#'
+as.hclust.fusedanova <- function(object, ...) {
+  merge <- export_merge(object$path$parent1, object$path$parent2)
+  order <- export_order(merge, object$path$sizes)
+  hc <- structure(
+    list(
+      merge  = merge,
+      height = object$path$lambda, 
+      labels = object$labels,
+      order  = order
+    ), class = "hclust")
+  hc
 }
 
-#' AIC of a fusedanova object
+#' #' compute loglikelihood of a fusedanova object
+#' #' 
+#' #' compute loglikelihood of a fusedanova object
+#' #' 
+#' #' @export
+#' #' 
+#' logLik.fusedanova <- function(object, ngroups=1:nrow(object$path)) {
+#'   groups <- cutree(object$hc, k = ngroups)
+#'   loglik <- apply(groups, 2, loglik_ANOVA, object$means)
+#'   loglik
+#' }
 #' 
-#' compute AIC of a fusedanova object
+#' #' AIC of a fusedanova object
+#' #' 
+#' #' compute AIC of a fusedanova object
+#' #' 
+#' #' @export
+#' #' 
+#' AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), k = 2) {
+#'   loglik <- logLik.fusedanova(object, ngroups)
+#'   AIC <- -2 * loglik + k * ngroups
+#'   AIC
+#' }
 #' 
-#' @export
-#' 
-AIC.fusedanova <- function(object, ngroups = 1:nrow(object$path), k = 2) {
-  loglik <- logLik.fusedanova(object, ngroups)
-  AIC <- -2 * loglik + k * ngroups
-  AIC
-}
-
-#' BIC of a fusedanova object
-#' 
-#' compute BIC of a fusedanova object
-#' 
-#' @export
-#' 
-BIC.fusedanova <- function(object, ngroups = 1:nrow(object$path)) {
-  BIC <- AIC.fusedanova(object, ngroups = ngroups, k = log(length(object$means)))  
-  BIC
-}
+#' #' BIC of a fusedanova object
+#' #' 
+#' #' compute BIC of a fusedanova object
+#' #' 
+#' #' @export
+#' #' 
+#' BIC.fusedanova <- function(object, ngroups = 1:nrow(object$path)) {
+#'   BIC <- AIC.fusedanova(object, ngroups = ngroups, k = log(length(object$means)))  
+#'   BIC
+#' }
 
 # slopes <- function(x, group, gamma = 1) {
 #   

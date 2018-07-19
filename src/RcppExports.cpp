@@ -6,31 +6,31 @@
 using namespace Rcpp;
 
 // export_order
-Rcpp::IntegerVector export_order(IntegerMatrix merge, IntegerVector size);
+Rcpp::IntegerVector export_order(const IntegerMatrix& merge, const IntegerVector& size);
 RcppExport SEXP _fusedanova_export_order(SEXP mergeSEXP, SEXP sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerMatrix >::type merge(mergeSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< const IntegerMatrix& >::type merge(mergeSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type size(sizeSEXP);
     rcpp_result_gen = Rcpp::wrap(export_order(merge, size));
     return rcpp_result_gen;
 END_RCPP
 }
 // export_merge
-Rcpp::IntegerMatrix export_merge(IntegerVector parent1, IntegerVector parent2);
+Rcpp::IntegerMatrix export_merge(const IntegerVector& parent1, const IntegerVector& parent2);
 RcppExport SEXP _fusedanova_export_merge(SEXP parent1SEXP, SEXP parent2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type parent1(parent1SEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type parent2(parent2SEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type parent1(parent1SEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type parent2(parent2SEXP);
     rcpp_result_gen = Rcpp::wrap(export_merge(parent1, parent2));
     return rcpp_result_gen;
 END_RCPP
 }
 // fusedanova_cpp
-List fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0);
+DataFrame fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0);
 RcppExport SEXP _fusedanova_fusedanova_cpp(SEXP beta0SEXP, SEXP slope0SEXP, SEXP size0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

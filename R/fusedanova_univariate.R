@@ -44,30 +44,12 @@ fusedanova.numeric <- function(x,
   group_names <- levels(group)[ordering]
   group_means <- group_means[ordering]
   group_sizes <- nk[ordering]
-  names(group_means) <- group_names
 
-  ## call to fused-ANOVA
+  ## call to fused-ANOVA cpp
   slopes <- get_slopes(group_means, group_sizes, gamma, weighting, W)
-  fa_out <- fusedanova_cpp(group_means, slopes, group_sizes) 
-
-  ## creating the hc object
-  hc <- structure(
-    list(
-      merge  = fa_out$merge,
-      height = fa_out$path$lambda, 
-      labels = group_names,
-      order  = fa_out$order # order for plotting the dendrogram
-    ), class = "hclust")
-
-  ## creating the fused-anova object
-  fa_object <- structure(
-    list(
-      means = group_means,
-      path  = fa_out$path, 
-      hc    = hc,
-      call  = match.call
-    ),
-    class = "fusedanova")
+  path   <- fusedanova_cpp(group_means, slopes, group_sizes)
   
+  ## creation of the fused-anova object
+  fa_object <- structure(list(path = path, labels = group_names), class = "fusedanova")
   fa_object
 }

@@ -4,7 +4,7 @@
 \alias{plot.fusedanova}
 \title{plot a fusedanova object}
 \usage{
-\method{plot}{fusedanova}(x, type = c("dendrogram", "BIC"), ...)
+\method{plot}{fusedanova}(x, ...)
 }
 \description{
 plot a fusedanova object

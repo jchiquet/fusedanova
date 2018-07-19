@@ -25,7 +25,3 @@ lines(BIC(fa, 1:50),  col= "blue")
 lines(BIC(fa, 1:50),  col= "red")
 par(mfrow = c(1,1))
 
-plot(BIC(fa, ngroups = 1:10), log="x")
-clusters <- cutree(fa$hc, 3)
-clusters <- lapply(split(names(clusters), clusters), sort)
-aricode::ARI(cutree(fa$hc, 3), group)

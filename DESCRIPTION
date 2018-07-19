@@ -22,8 +22,6 @@ Collate:
     'RcppExports.R'
     'agregation_to_hc.R'
     'aves.R'
-    'crossval.R'
-    'crossval_class.R'
     'fusedanova-package.R'
     'fusedanova_multivariate.R'
     'fusedanova_univariate.R'

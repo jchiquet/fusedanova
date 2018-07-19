@@ -36,10 +36,11 @@ class FusionTree {
   // update the list of upcoming fusion events
   void update() ;
   
-  // methods to export results in handy formats
+  // methods to export the path of solution
   void export_path () ;
-  void export_merge() ;
-  void export_order() ;
+  
+  // void export_merge() ;
+  // void export_order() ;
   
 };
 

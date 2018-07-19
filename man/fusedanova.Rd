@@ -12,9 +12,8 @@
   weighting = c("laplace", "gaussian", "adaptive"), gamma = rep(0, ncol(x)),
   standardize = TRUE, W = NULL)
 
-\method{fusedanova}{numeric}(x, group = 1:length(x),
-  weighting = c("laplace", "gaussian", "adaptive"), gamma = 0,
-  standardize = TRUE, W = NULL)
+\method{fusedanova}{numeric}(x, group, weighting = c("laplace", "gaussian",
+  "adaptive"), gamma = 0, standardize = FALSE, W = NULL)
 
 fusedanova(x, ...)
 

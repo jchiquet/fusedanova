@@ -12,7 +12,7 @@ struct pos_node {
 
 //' @export
 // [[Rcpp::export]]
-Rcpp::IntegerVector export_order(IntegerMatrix merge, IntegerVector size) {
+Rcpp::IntegerVector export_order(const IntegerMatrix& merge, const IntegerVector& size) {
   // function to recover a correct order of the nodes for the dendrogram (required for hclust object) 
   
   /* Parameters:
@@ -69,25 +69,25 @@ Rcpp::IntegerVector export_order(IntegerMatrix merge, IntegerVector size) {
 
 //' @export
 // [[Rcpp::export]]
-Rcpp::IntegerMatrix export_merge(IntegerVector parent1, IntegerVector parent2) {
+Rcpp::IntegerMatrix export_merge(const IntegerVector& parent1, const IntegerVector& parent2) {
   
   // function to ouput the dendrogram of fusion into the hclust format 
-  int K = parent1.size() ;
+  int K = parent1.size() + 1 ;
   IntegerMatrix merge = IntegerMatrix(K - 1, 2);
   
   for (int k = 0; k < K - 1; k++) {
     
     int_fast32_t merge1, merge2;
     
-    if (parent1[k] >= K) {
-      merge1 = (parent1[k] + 1) - K;
+    if (parent1[k] > K) {
+      merge1 = parent1[k] - K;
     } else {
-      merge1 = -(parent1[k] + 1);
+      merge1 = -parent1[k];
     }
-    if (parent2[k] >= K) {
-      merge2 = (parent2[k] + 1) - K;
+    if (parent2[k] > K) {
+      merge2 = parent2[k] - K;
     } else {
-      merge2 = -(parent2[k] + 1);
+      merge2 = -parent2[k];
     }
     if (merge1 < merge2) {
       merge(k, 0) = merge1;
