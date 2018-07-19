@@ -12,6 +12,7 @@ License: GPL (>=2)
 Imports:
     methods,
     parallel,
+    Rmergetrees,
     Rcpp
 Suggests:
     testthat
