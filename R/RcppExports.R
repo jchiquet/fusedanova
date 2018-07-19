@@ -13,10 +13,6 @@ fusedanova_cpp <- function(beta0, slope0, size0) {
     .Call('_fusedanova_fusedanova_cpp', PACKAGE = 'fusedanova', beta0, slope0, size0)
 }
 
-pruneSplits <- function(listSetRules, orderRules, n, p) {
-    .Call('_fusedanova_pruneSplits', PACKAGE = 'fusedanova', listSetRules, orderRules, n, p)
-}
-
 get_slopes <- function(xm, ngroup, gamma, weights, W) {
     .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, gamma, weights, W)
 }

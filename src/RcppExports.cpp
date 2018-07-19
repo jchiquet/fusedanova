@@ -42,20 +42,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// pruneSplits
-List pruneSplits(List listSetRules, IntegerMatrix orderRules, int n, int p);
-RcppExport SEXP _fusedanova_pruneSplits(SEXP listSetRulesSEXP, SEXP orderRulesSEXP, SEXP nSEXP, SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type listSetRules(listSetRulesSEXP);
-    Rcpp::traits::input_parameter< IntegerMatrix >::type orderRules(orderRulesSEXP);
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(pruneSplits(listSetRules, orderRules, n, p));
-    return rcpp_result_gen;
-END_RCPP
-}
 // get_slopes
 NumericVector get_slopes(NumericVector& xm, IntegerVector& ngroup, double gamma, std::string weights, NumericMatrix& W);
 RcppExport SEXP _fusedanova_get_slopes(SEXP xmSEXP, SEXP ngroupSEXP, SEXP gammaSEXP, SEXP weightsSEXP, SEXP WSEXP) {
@@ -76,7 +62,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fusedanova_export_order", (DL_FUNC) &_fusedanova_export_order, 2},
     {"_fusedanova_export_merge", (DL_FUNC) &_fusedanova_export_merge, 2},
     {"_fusedanova_fusedanova_cpp", (DL_FUNC) &_fusedanova_fusedanova_cpp, 3},
-    {"_fusedanova_pruneSplits", (DL_FUNC) &_fusedanova_pruneSplits, 4},
     {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 5},
     {NULL, NULL, 0}
 };

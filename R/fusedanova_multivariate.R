@@ -43,20 +43,19 @@ fusedanova.data.frame <-
       x <- sweep(x, 2, s, "/")
     }
 
-    ## MULTIPLE CALLS TO UNIVAIRATE FUSED-ANOVA
+    ## MULTIPLE CALLS TO UNIVARIATE FUSED-ANOVA
     fa_objs <- mapply(
       fusedanova.numeric, 
       as.list(x), gamma, 
       MoreArgs = list(group = group, weighting = weighting, standardize = FALSE, W = W),
       SIMPLIFY = FALSE
     )
-    ## list of dendrograms (hclust)
-    hc_objs <- lapply(fa_objs, as.hclust.fusedanova)
 
     ### AGGREGATION
-    merged_tree <- mergeTrees(hc_objs)    
+    merged_tree <- mergeTrees(lapply(fa_objs, as.hclust.fusedanova))
     merged_tree
-    
+}
+
 #     ## extract lists of rules and lambdas
 #     Rules  <- mapply(function(fa, hc) {
 #         list(
@@ -78,8 +77,7 @@ fusedanova.data.frame <-
 #       Lambdas[[orderRules[rule,2]]][orderRules[rule,1]]
 #     })
 # 
-# ### TODO: create fa object (path)
-# ### Is it possible from aggregation?
+# Is it possible from aggregation?
 #     # res <- structure(
 #     #     list(
 #     #       labels  = fa_out[[1]]$labels,
@@ -94,17 +92,16 @@ fusedanova.data.frame <-
 #       labels = fa_objs[[1]]$labels,
 #       order  = OrdreIndividus(aggregation)), class = "hclust")
 #     hc
-  }
-
-order_hc_list <- function(hc_list) {
-  ref_labels <- hc_list[[1]]$labels
-  ref_order  <- hc_list[[1]]$order
-  hc_ordered <- lapply(hc_list[-1], function(hc) {
-    hc$labels <- hc$labels[match(ref_labels, hc$labels)]
-    hc$order  <- hc$order [match(ref_order , hc$labels)]
-    hc
-  })
-  hc_ordered <- c(list(hc_list[[1]]), hc_ordered)
-  names(hc_ordered) <- names(hc_list)
-  hc_ordered
-}
+# 
+# order_hc_list <- function(hc_list) {
+#   ref_labels <- hc_list[[1]]$labels
+#   ref_order  <- hc_list[[1]]$order
+#   hc_ordered <- lapply(hc_list[-1], function(hc) {
+#     hc$labels <- hc$labels[match(ref_labels, hc$labels)]
+#     hc$order  <- hc$order [match(ref_order , hc$labels)]
+#     hc
+#   })
+#   hc_ordered <- c(list(hc_list[[1]]), hc_ordered)
+#   names(hc_ordered) <- names(hc_list)
+#   hc_ordered
+# }
