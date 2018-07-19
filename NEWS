@@ -1,4 +1,12 @@
 NEWS/Changelog
 
-0.1-0	(2013-11-01)
-    +	first build
+0.3-0 (2018-07-01)
+    + multivariate version using Rmergetrees
+    + qucik and easy export to hclust format
+    + many minor simplication
+
+0.2-0 (2018-01-01)
+    + complete rewriting in OO style
+
+0.1-0 (2013-11-01)
+    + first build from Pierre's code

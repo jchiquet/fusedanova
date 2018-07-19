@@ -98,7 +98,7 @@
 ##' Algorithm for Clustering using Convex Fusion Penalties, ICML,
 ##' 2011.
 ##'
-##' @import parallel ggplot2 grid methods plyr
 ##' @importFrom Rcpp sourceCpp
+##' @import methods
 ##' @useDynLib fusedanova
 NULL
