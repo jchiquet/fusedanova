@@ -3,7 +3,7 @@
 fusedanova.numeric <- function(x, 
                         group,
                         weighting = c("laplace", "gaussian", "adaptive"),
-                        gamma = 0, standardize = FALSE, W = NULL) {
+                        gamma = 0, standardize = FALSE, W = NULL, hclust = TRUE) {
 
   ## group vector: default or/and conversion to a factor
   if (missing(group)) {
@@ -47,13 +47,14 @@ fusedanova.numeric <- function(x,
 
   ## call to fused-ANOVA cpp
   slopes <- get_slopes(group_means, group_sizes, gamma, weighting, W)
-  path   <- fusedanova_cpp(group_means, slopes, group_sizes)
-  
+  fusion <- fusedanova_cpp(group_means, slopes, group_sizes)
+
   ## creation of the fused-anova object
-  fa_object <- structure(
-    list(path      = path,
-         weighting = weighting,
-         labels    = group_names, 
-         call      = match.call()), class = "fusedanova")
-  as.hclust.fusedanova(fa_object)
+  res <- structure(
+    list(fusionTree = fusion,
+         weighting  = weighting,
+         labels     = group_names, 
+         call       = match.call()), class = "fusedanova")
+  if (hclust) res <- as.hclust.fusedanova(res)
+  res
 }

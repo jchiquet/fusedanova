@@ -23,6 +23,8 @@
 ##' If not \code{NULL}, should be a k x k matrix (with k the initial number of groups) that
 ##' will overwrite the \code{weighting} parameter.
 ##' 
+##' @param hclust boolean: should the result be outputed as an hclust object? Default is \code{TRUE}.
+##' 
 ##' @return an S3 object with class \code{hclust}.
 ##'
 ##' The optimization problem solved by fused-ANOVA is
@@ -81,12 +83,12 @@ fusedanova.matrix <-
 #'
 #' export a fusedanova_cpp output to an hclust object - internal used only
 as.hclust.fusedanova <- function(object, ...) {
-  merge <- export_merge(object$path$parent1, object$path$parent2)
-  order <- export_order(merge, object$path$sizes)
+  merge <- export_merge(object$fusionTree$child1, object$fusionTree$child2)
+  order <- export_order(merge, object$fusionTree$sizes)
   hc <- structure(
     list(
       merge    = merge,
-      height   = object$path$lambda, 
+      height   = object$fusionTree$lambda, 
       labels   = object$labels,
       order    = order,
       method   = "fused-ANOVA",

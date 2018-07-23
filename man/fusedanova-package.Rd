@@ -5,7 +5,7 @@
 \alias{fusedanova-package}
 \title{Fused-ANOVA package: general presentation}
 \description{
-This package is designed to fit accurately the Fused-ANOVA model,
+OUTDATED!!!  This package is designed to fit accurately the Fused-ANOVA model,
 a penalized method to solve the one-way ANOVA problem by
 collapsing the coefficients of \eqn{K}{K} conditions.  For a large
 class of weights implemented here, our homotopy algorithm is in
@@ -70,22 +70,6 @@ adapted the algorithm developed by Hoefling (reference below) to
 the fused-ANOVA problem.
 }
 
-\section{Efficient cross-validation procedure}{
-
-
-We provide a fast cross validation (CV) procedure to select
-\eqn{\lambda}{lambda} for both the general and the no split
-algorithms.  The idea behind this procedure is to take advantage
-of the DAG structure of the path of solutions along
-\eqn{\lambda}{lambda}.  Rather than computing the CV error for
-each condition separately, we traverse each edge of the DAG once
-and only once and compute simultaneously the error of all
-conditions going through this edge.  If we consider a perfectly
-balanced tree and a grid of \eqn{P}{P} values of
-\eqn{\lambda}{lambda} we achieve \eqn{\mathcal{O}(P \log (P))}{O(P
-log (P))} rather than a \eqn{\mathcal{O}(P^2)}{O(P^2)} complexity.
-}
-
 \section{Technical remarks}{
 
 
@@ -97,8 +81,9 @@ Windows user, though.
 }
 
 \references{
-Fused-ANOVA: shortly coming
-
+Chiquet J, Gutierrez P, Rigaill G: Fast tree inference with weighted fusion penalties,
+ Journal of Computational and Graphical Statistics 205–216, 2017.
+ 
 H. Hoefling. A path algorithm for the fused lasso signal
 approximator, technical report, arXiv, 2010.
 
@@ -107,5 +92,5 @@ Algorithm for Clustering using Convex Fusion Penalties, ICML,
 2011.
 }
 \author{
-Pierre Gutierrez, Julien Chiquet, Guillem Rigaill.
+Julien Chiquet, Pierre Gutierrez, Guillem Rigaill.
 }

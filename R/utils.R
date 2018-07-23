@@ -15,14 +15,14 @@ get_norm <- function(x, group, n, k, nk) {
   s
 }
 
-loglik_ANOVA <- function(group, x) {
-  n  <- length(x)
-  nk <- tabulate(group)
-  k  <- length(nk)
-  betak <- rowsum(x, group)/nk
-  RSS <- sum((x - betak[group])^2)
-  sigma2 <- RSS/(n - k)
-  ### Check the loglikelihood
-  loglik <- -.5 * (n*log(2*pi) + n*sum(log(sigma2)) + (n - k))
-  loglik
-}
+# loglik_ANOVA <- function(group, x) {
+#   n  <- length(x)
+#   nk <- tabulate(group)
+#   k  <- length(nk)
+#   betak <- rowsum(x, group)/nk
+#   RSS <- sum((x - betak[group])^2)
+#   sigma2 <- RSS/(n - k)
+#   ### Check the loglikelihood
+#   loglik <- -.5 * (n*log(2*pi) + n*sum(log(sigma2)) + (n - k))
+#   loglik
+# }

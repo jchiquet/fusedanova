@@ -36,7 +36,7 @@ DataFrame fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVecto
   } // end fusion loop
 
   // outputing the path 
-  myTree.export_path() ;
+  myTree.export_tree() ;
 
-  return myTree.path ;
+  return myTree.tree ;
 }

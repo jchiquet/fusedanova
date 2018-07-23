@@ -19,7 +19,7 @@ class FusionTree {
   std::priority_queue <Fusion, std::vector<Fusion>, UpcomingFusions> CandidateFusions ; 
   
   // data frame for outputing the path of fusions
-  Rcpp::DataFrame path ;
+  Rcpp::DataFrame tree ;
   
   // constructor
   FusionTree(const Rcpp::NumericVector beta0, const Rcpp::NumericVector slope0, const Rcpp::IntegerVector size0) ;
@@ -31,7 +31,7 @@ class FusionTree {
   void update() ;
   
   // methods to export the path of solution
-  void export_path () ;
+  void export_tree () ;
   
 };
 

@@ -12,7 +12,7 @@
   "adaptive"), gamma = rep(0, ncol(x)), standardize = FALSE, W = NULL)
 
 \method{fusedanova}{numeric}(x, group, weighting = c("laplace", "gaussian",
-  "adaptive"), gamma = 0, standardize = FALSE, W = NULL)
+  "adaptive"), gamma = 0, standardize = FALSE, W = NULL, hclust = TRUE)
 
 fusedanova(x, ...)
 
@@ -40,6 +40,8 @@ Default is \code{FALSE}. If \code{TRUE}, the vector is centered and scaled accor
 \item{W}{a numeric matrix of weights of user defined weights. Default is \code{NULL}. 
 If not \code{NULL}, should be a k x k matrix (with k the initial number of groups) that
 will overwrite the \code{weighting} parameter.}
+
+\item{hclust}{boolean: should the result be outputed as an hclust object? Default is \code{TRUE}.}
 }
 \value{
 an S3 object with class \code{hclust}.
