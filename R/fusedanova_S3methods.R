@@ -84,12 +84,14 @@ fusedanova.matrix <-
 #' export a fusedanova_cpp output to an hclust object - internal used only
 as.hclust.fusedanova <- function(object, ...) {
   merge <- export_merge(object$fusionTree$child1, object$fusionTree$child2)
-  order <- export_order(merge, object$fusionTree$sizes)
+  mergeReordered <- merge
+  ind <- match(1:length(object$labels), order(as.numeric(object$labels)))
+  mergeReordered[merge < 0] <- -ind[-merge[merge < 0]]
+  order <- export_order(mergeReordered, object$fusionTree$sizes)
   hc <- structure(
     list(
-      merge    = merge,
+      merge    = mergeReordered,
       height   = object$fusionTree$lambda, 
-      labels   = object$labels,
       order    = order,
       method   = "fused-ANOVA",
       dist.method = paste(object$weighting, "weights"),
