@@ -67,7 +67,7 @@ fusedanova <- function(x, ...) UseMethod("fusedanova", x)
 fusedanova.matrix <- 
   function(x, group = 1:nrow(x),
            weighting = c("laplace", "gaussian", "adaptive"),
-           gamma = rep(0,ncol(x)), standardize = TRUE, W = NULL) {
+           gamma = rep(0,ncol(x)), standardize = FALSE, W = NULL) {
   res <- fusedanova.data.frame(
     as.data.frame(x), 
     group = group, 
