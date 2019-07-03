@@ -16,13 +16,11 @@ source("util.R")
 ## SIMULATION PARAMETERS
 n_grp <- 20
 grp_size <- 50
-separability <- 2
+separability <- 1
 n0 <- 30
 n1 <- 50
 n_grp_per_data <- 2
 n_sim <- 10
-
-gamma <- .5
 
 # SCENARIO 1: CHAQUE JEUX DE DONNÉES N1 PORTE LA MÊME INFORMATION
 # 
@@ -31,7 +29,7 @@ gamma <- .5
 res_scenario1 <- mclapply(1:n_sim, function(sim_label) {
   dataSets  <- scenario1(n0, n1, n_grp, grp_size, separability)
   reference <- rep(1:n_grp, each = grp_size) 
-  oneRun(sim_label, dataSets, reference, gamma = gamma)
+  oneRun(sim_label, dataSets, reference, k = 5)
 }, mc.cores = 10)
 
 res_plot1 <- Reduce("rbind", res_scenario1) %>% 
@@ -42,7 +40,6 @@ res_plot1 <- Reduce("rbind", res_scenario1) %>%
 p1 <- ggplot(res_plot1,  aes(nb_grp, NID, color = method)) + 
   geom_line() + geom_point(aes(shape = method)) + xlim(0, 100) + scale_color_viridis(discrete = TRUE)
 
-gamma <- 0
 # SCENARIO 2: INFORMATION PORTÉE PAR PLUSIEURS JEUX DE DONNÉES
 # 
 # FAVORABLE À MERGETREES
@@ -50,7 +47,7 @@ gamma <- 0
 res_scenario2 <- mclapply(1:n_sim, function(sim_label) {
   dataSets  <- scenario2(n0, n1, n_grp, n_grp_per_data, grp_size, separability)
   reference <- rep(1:n_grp, each = grp_size) 
-  oneRun(sim_label, dataSets, reference, gamma = gamma)
+  oneRun(sim_label, dataSets, reference)
 }, mc.cores = 10)
 
 res_plot2 <- Reduce("rbind", res_scenario2) %>% 
