@@ -8,17 +8,19 @@
 \alias{fusedanova.matrix}
 \title{Fit a Fused ANOVA model}
 \usage{
-\method{fusedanova}{data.frame}(x, group, weighting = c("laplace", "gaussian",
-  "adaptive"), gamma = rep(0, ncol(x)), standardize = FALSE, W = NULL)
+\method{fusedanova}{data.frame}(x, group, weighting = c("laplace",
+  "gaussian", "adaptive"), gamma = rep(0, ncol(x)),
+  standardize = FALSE, W = NULL)
 
-\method{fusedanova}{numeric}(x, group, weighting = c("laplace", "gaussian",
-  "adaptive"), gamma = 0, standardize = FALSE, W = NULL, hclust = TRUE)
+\method{fusedanova}{numeric}(x, group, weighting = c("laplace",
+  "gaussian", "adaptive"), gamma = 0, standardize = FALSE, W = NULL,
+  hclust = TRUE)
 
 fusedanova(x, ...)
 
-\method{fusedanova}{matrix}(x, group = 1:nrow(x), weighting = c("laplace",
-  "gaussian", "adaptive"), gamma = rep(0, ncol(x)), standardize = TRUE,
-  W = NULL)
+\method{fusedanova}{matrix}(x, group = 1:nrow(x),
+  weighting = c("laplace", "gaussian", "adaptive"), gamma = rep(0,
+  ncol(x)), standardize = FALSE, W = NULL)
 }
 \arguments{
 \item{x}{a vector, matrix or data.frame of observation for n individuals.}

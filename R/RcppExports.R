@@ -17,3 +17,7 @@ get_slopes <- function(xm, ngroup, gamma, weights, W) {
     .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, gamma, weights, W)
 }
 
+ward1d_cpp <- function(sum_0, sum2_0, size0) {
+    .Call('_fusedanova_ward1d_cpp', PACKAGE = 'fusedanova', sum_0, sum2_0, size0)
+}
+

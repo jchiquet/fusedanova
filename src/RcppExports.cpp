@@ -57,12 +57,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ward1d_cpp
+DataFrame ward1d_cpp(NumericVector sum_0, NumericVector sum2_0, IntegerVector size0);
+RcppExport SEXP _fusedanova_ward1d_cpp(SEXP sum_0SEXP, SEXP sum2_0SEXP, SEXP size0SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type sum_0(sum_0SEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sum2_0(sum2_0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type size0(size0SEXP);
+    rcpp_result_gen = Rcpp::wrap(ward1d_cpp(sum_0, sum2_0, size0));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_fusedanova_export_order", (DL_FUNC) &_fusedanova_export_order, 2},
     {"_fusedanova_export_merge", (DL_FUNC) &_fusedanova_export_merge, 2},
     {"_fusedanova_fusedanova_cpp", (DL_FUNC) &_fusedanova_fusedanova_cpp, 3},
     {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 5},
+    {"_fusedanova_ward1d_cpp", (DL_FUNC) &_fusedanova_ward1d_cpp, 3},
     {NULL, NULL, 0}
 };
 
