@@ -35,9 +35,9 @@ node_ward1d node_ward1d::operator+ (const node_ward1d& node_) {
   double x2plus_ = this->x2plus + node_.x2plus ;
 
   node_ward1d result(this->K, 0, xplus_, x2plus_, weight_) ;
-  
-  result.lambda = sqrt(x2plus_ - (xplus_*xplus_)/weight_) ;
-  
+
+  result.lambda  =  sqrt(2 *(x2plus_ - pow(xplus_,2)/weight_ )) ;
+
   result.size  = this->size + node_.size;
   result.parent1 = this->label;
   result.parent2 = node_.label;
@@ -61,6 +61,6 @@ node_ward1d node_ward1d::operator+ (const node_ward1d& node_) {
 Fusion_ward1d::Fusion_ward1d(node_ward1d *node1_, node_ward1d *node2_) 
   : node1(node1_),  node2(node2_) 
   {
-    lambda  =  (node1->xplus*node1->xplus)/node1->weight + (node2->xplus*node2->xplus)/node2->weight - ((node1->xplus + node2->xplus) * (node1->xplus + node2->xplus)) / (node1->weight + node2->weight) ;
+    lambda =  pow(node1->xplus, 2)/node1->weight + pow(node2->xplus, 2)/node2->weight - pow(node1->xplus + node2->xplus, 2) / (node1->weight + node2->weight) ;
   }
 ;
