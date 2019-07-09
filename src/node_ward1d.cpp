@@ -3,7 +3,7 @@
 // Constructor/Destructor
 node_ward1d:: node_ward1d() {};
 node_ward1d::~node_ward1d() {};
-node_ward1d::node_ward1d(int K_       ,
+node_ward1d::node_ward1d(int K_,
            int label_   , 
            double xplus_ ,
            double x2plus_,
@@ -11,6 +11,7 @@ node_ward1d::node_ward1d(int K_       ,
     : lambda(0.0)    ,
       xplus(xplus_)  ,
       x2plus(x2plus_),
+      inertia(x2plus_ - pow(xplus_, 2)/weight_),
       K(K_)          ,
       weight(weight_),
       size(1)        , 
@@ -36,7 +37,7 @@ node_ward1d node_ward1d::operator+ (const node_ward1d& node_) {
 
   node_ward1d result(this->K, 0, xplus_, x2plus_, weight_) ;
 
-  result.lambda  =  sqrt(2 *(x2plus_ - pow(xplus_,2)/weight_ )) ;
+  result.lambda  =  sqrt(2 *(result.inertia - this->inertia - node_.inertia)) ;
 
   result.size  = this->size + node_.size;
   result.parent1 = this->label;
@@ -61,6 +62,7 @@ node_ward1d node_ward1d::operator+ (const node_ward1d& node_) {
 Fusion_ward1d::Fusion_ward1d(node_ward1d *node1_, node_ward1d *node2_) 
   : node1(node1_),  node2(node2_) 
   {
-    lambda =  pow(node1->xplus, 2)/node1->weight + pow(node2->xplus, 2)/node2->weight - pow(node1->xplus + node2->xplus, 2) / (node1->weight + node2->weight) ;
+    double inertia_c1c2 = node1->x2plus + node2->x2plus - pow(node1->xplus + node2->xplus, 2) / (node1->weight + node2->weight);
+    lambda = inertia_c1c2 - node1->inertia - node2->inertia;
   }
 ;

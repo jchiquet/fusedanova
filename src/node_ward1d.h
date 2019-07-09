@@ -8,6 +8,7 @@ public:
   double lambda ; 
   double xplus  ;
   double x2plus ;
+  double inertia;
   int K         ;
   int weight    ;
   int size      ;
@@ -57,4 +58,4 @@ public:
   }
 };
 
-#endif        
+#endif

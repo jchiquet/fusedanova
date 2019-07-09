@@ -22,7 +22,7 @@ DataFrame ward1d_cpp(NumericVector sum_0, NumericVector sum2_0, IntegerVector si
     }
       
     if (myTree.CandidateFusions.empty()) {
-      std::cout << "ouch!! no more active fusions: you obviously chose a too large gamma" << std::endl;
+      std::cout << "ouch!! no more active fusions..." << std::endl;
       myTree.nodes.resize(k);
       break;
     }
