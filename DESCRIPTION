@@ -16,9 +16,10 @@ Imports:
     Rcpp
 Suggests:
     testthat,
-    knitr
+    knitr,
+    ape
 LinkingTo: Rcpp
-RoxygenNote: 6.1.1
+RoxygenNote: 6.1.1 
 Encoding: UTF-8
 VignetteBuilder: knitr
 Collate: 
