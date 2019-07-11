@@ -64,8 +64,8 @@ mergeTreesClustering <- function(dataSets) {
 
 mergeTreesWard1d <- function(dataSets) {
   hc_list <- lapply(dataSets, FUN = function(x) {
-#    fusedanova:::ward1d.numeric(x)
-    hclust(dist(x), method = "ward.D2")
+    fusedanova:::ward1d.numeric(x)
+#    hclust(dist(x), method = "ward.D2")
   })
   Rmergetrees::mergeTrees(hc_list)
 } 
