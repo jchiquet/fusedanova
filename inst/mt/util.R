@@ -55,19 +55,11 @@ averagedClustering <- function(dataSets) {
   hclust(AD, method = "ward.D2")
 }
 
-mergeTreesClustering <- function(dataSets) {
+mergeTreesWard <- function(dataSets) {
   hc_list <- lapply(dataSets, FUN = function(x) {
-    hclust(dist(x, method = "euclidean"), method = "ward.D2")
+    univarclust::ward_1d(x)
   })
-  Rmergetrees::mergeTrees(hc_list)
-} 
-
-mergeTreesWard1d <- function(dataSets) {
-  hc_list <- lapply(dataSets, FUN = function(x) {
-    fusedanova:::ward1d.numeric(x)
-#    hclust(dist(x), method = "ward.D2")
-  })
-  Rmergetrees::mergeTrees(hc_list)
+  mergeTrees::mergeTrees(hc_list)
 } 
 
 oneDimClustering <- function(dataSet) {
@@ -77,11 +69,8 @@ oneDimClustering <- function(dataSet) {
 ## run approaches
 oneRun <- function(sim_label, dataSets, reference, score = NID, k = 10){
   
-  # ## Merge Tree
-  # time_MT <- system.time(MT_res <- mergeTreesClustering(dataSets))[3]
-
-  ## Merge Tree
-  time_MTW <- system.time(MTW_res <- mergeTreesWard1d(dataSets))[3]
+  ## Merge Tree with Ward 1D
+  time_MTW <- system.time(MTW_res <- mergeTreesWard(dataSets))[3]
     
   ## One dimension
   time_OD <- system.time(OD_res <- oneDimClustering(dataSets[[length(dataSets)]]))[3]
@@ -92,29 +81,6 @@ oneRun <- function(sim_label, dataSets, reference, score = NID, k = 10){
   # Average Distance
   time_AD <- system.time(AD_res <- averagedClustering(dataSets))[3]
 
-  # # Fused-ANOVA Merge trees
-  # time_FA <- system.time(FA_res <- fusedanova(Reduce("cbind", dataSets), gamma = rep(gamma, length(dataSets))))[3]
-
-  # ## Some spectral versions
-  # time_SVD <- system.time(
-  #   {
-  #     SVD <- svd(do.call("cbind", dataSets))
-  #     dataSets_spectral <- as.list(as.data.frame(SVD$u %*% diag(SVD$d)))  
-  #   }
-  # )[3]
-  # 
-  # # Spectral Direct Clustering
-  # time_SDC <- system.time(SDC_res <- directClustering(dataSets_spectral))[3] + time_SVD
-
-  # # Spectral Merge trees
-  # time_SMT <- system.time(SMT_res <- mergeTreesClustering(dataSets_spectral))[3] + time_SVD
-
-  # # Spectral Merge trees
-  # time_SMTW <- system.time(SMTW_res <- mergeTreesWard1d(dataSets_spectral))[3] + time_SVD
-      
-  # # Spectral Fused-ANOVA Merge trees
-  # time_SFA <- system.time(SFA_res <- fusedanova(Reduce("cbind", dataSets_spectral), gamma = rep(gamma, length(dataSets))))[3] + time_SVD
-    
   nb_ind <- length(dataSets[[1]])
 
   ## spectral versions with random SVD
@@ -125,41 +91,21 @@ oneRun <- function(sim_label, dataSets, reference, score = NID, k = 10){
     }
   )[3]
 
-  # # Spectral Direct Clustering
-  # time_rSDC <- system.time(rSDC_res <- directClustering(dataSets_rspectral))[3]
 
   # Spectral Merge trees
-  time_rSMTW <- system.time(rSMTW_res <- mergeTreesWard1d(dataSets_rspectral))[3] + time_rSVD
-  #   
-  # # Spectral Fused-ANOVA Merge trees
-  # time_rSFA <- system.time(rSFA_res <- fusedanova(Reduce("cbind", dataSets_rspectral), gamma = rep(gamma, k)))[3]
+  time_rSMTW <- system.time(rSMTW_res <- mergeTreesWard(dataSets_rspectral))[3] + time_rSVD
+  
   NID_1    <- apply(cutree(OD_res  , 1:nb_ind), 2, score, c2 = reference)
-  # NID_MT   <- apply(cutree(MT_res  , 1:nb_ind), 2, score, c2 = reference)
   NID_MTW  <- apply(cutree(MTW_res  , 1:nb_ind), 2, score, c2 = reference)
   NID_DC   <- apply(cutree(DC_res  , 1:nb_ind), 2, score, c2 = reference)
   NID_AD   <- apply(cutree(AD_res  , 1:nb_ind), 2, score, c2 = reference)
-  # NID_FA   <- apply(cutree(FA_res  , 1:nb_ind), 2, score, c2 = reference)
-  # NID_SMT  <- apply(cutree(SMT_res , 1:nb_ind), 2, score, c2 = reference)
-  # NID_SMTW <- apply(cutree(SMTW_res , 1:nb_ind), 2, score, c2 = reference)
-  # NID_SDC  <- apply(cutree(SDC_res , 1:nb_ind), 2, score, c2 = reference)
-  # NID_SFA  <- apply(cutree(SFA_res , 1:nb_ind), 2, score, c2 = reference)
   NID_rSMTW <- apply(cutree(rSMTW_res, 1:nb_ind), 2, score, c2 = reference)
-  # NID_rSDC <- apply(cutree(rSDC_res, 1:nb_ind), 2, score, c2 = reference)
-  # NID_rSFA <- apply(cutree(rSFA_res, 1:nb_ind), 2, score, c2 = reference)
   
   do.call(rbind, 
           list(OD  = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="One"  , NID=NID_1    , time = time_OD),
-               # MT  = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="MT"   , NID=NID_MT   , time = time_MT),
                MTW  = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="MTW"   , NID=NID_MTW   , time = time_MTW),
                DC  = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="DC"   , NID=NID_DC   , time = time_DC),
                AD  = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="AD"   , NID=NID_AD   , time = time_AD),
-               # FA  = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="FA"   , NID=NID_FA   , time = time_FA),
-               # SMT = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="SMT"  , NID=NID_SMT  , time = time_SMT),
-               # SDC = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="SDC"  , NID=NID_SDC  , time = time_SDC),
-               # SFA = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="SFA"  , NID=NID_SFA  , time = time_SFA),
-               # rSMT = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="rSMT" , NID=NID_rSMT, time = time_rSMT),
-               # rSDC = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="rSDC" , NID=NID_rSDC, time = time_rSDC),
-               # rSFA = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="rSFA" , NID=NID_rSFA, time = time_rSFA),
                SMTW = data.frame(nb_grp=1:nb_ind, Sim=sim_label, method="SMTW"  , NID=NID_rSMTW  , time = time_rSMTW)
           ))
 

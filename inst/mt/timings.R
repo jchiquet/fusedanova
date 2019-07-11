@@ -1,6 +1,6 @@
 rm(list = ls())
-library(Rmergetrees)
-library(fusedanova)
+library(mergetrees)
+library(univarclust)
 library(aricode) 
 library(rsvd)
 library(parallel)
@@ -88,5 +88,5 @@ for (factor in c(1:10)) {
 
 }
 
-p_sample <- ggplot(res_growing_samplesize, aes(x = sample_size, y = time, shape = method)) + geom_point()
-p_feature <-ggplot(res_growing_features  , aes(x = features, y = time, shape = method)) + geom_point()
+p_sample  <- ggplot(res_growing_samplesize, aes(x = sample_size, y = time, shape = method)) + geom_point()
+p_feature <- ggplot(res_growing_features  , aes(x = features, y = time, shape = method)) + geom_point()

@@ -1,6 +1,6 @@
 rm(list = ls())
-library(Rmergetrees)
-library(fusedanova)
+library(mergeTrees)
+library(univarclust)
 library(aricode) 
 library(rsvd)
 library(parallel)

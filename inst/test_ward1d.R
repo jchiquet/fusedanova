@@ -15,7 +15,7 @@ or <- hclust(dist(x), method = "ward.D2")
 plot(or)
 or$height
 
-w1 <- fusedanova:::ward1d.numeric(as.double(x))
+w1 <- univarclust:::ward_1d(as.double(x))
 plot(w1)
 w1$height
 
