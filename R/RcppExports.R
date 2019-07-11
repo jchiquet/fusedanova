@@ -2,22 +2,22 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 export_order <- function(merge, size) {
-    .Call('_fusedanova_export_order', PACKAGE = 'fusedanova', merge, size)
+    .Call('_univarclust_export_order', PACKAGE = 'univarclust', merge, size)
 }
 
 export_merge <- function(parent1, parent2) {
-    .Call('_fusedanova_export_merge', PACKAGE = 'fusedanova', parent1, parent2)
+    .Call('_univarclust_export_merge', PACKAGE = 'univarclust', parent1, parent2)
 }
 
 fusedanova_cpp <- function(beta0, slope0, size0) {
-    .Call('_fusedanova_fusedanova_cpp', PACKAGE = 'fusedanova', beta0, slope0, size0)
+    .Call('_univarclust_fusedanova_cpp', PACKAGE = 'univarclust', beta0, slope0, size0)
 }
 
-get_slopes <- function(xm, ngroup, gamma, weights, W) {
-    .Call('_fusedanova_get_slopes', PACKAGE = 'fusedanova', xm, ngroup, gamma, weights, W)
+get_slopes <- function(xm, ngroup, gamma, weights) {
+    .Call('_univarclust_get_slopes', PACKAGE = 'univarclust', xm, ngroup, gamma, weights)
 }
 
 ward1d_cpp <- function(sum_0, sum2_0, size0) {
-    .Call('_fusedanova_ward1d_cpp', PACKAGE = 'fusedanova', sum_0, sum2_0, size0)
+    .Call('_univarclust_ward1d_cpp', PACKAGE = 'univarclust', sum_0, sum2_0, size0)
 }
 

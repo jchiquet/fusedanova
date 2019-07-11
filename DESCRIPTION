@@ -1,29 +1,30 @@
-Package: fusedanova
+Package: univarclust
 Type: Package
-Title: Fused-ANOVA
-Version: 0.3-0
-Date: 2018-07-08
+Title: Univariate hierarchical clustering
+Version: 0.4-0
+Date: 2019-07-08
 Author: Julien Chiquet, Pierre Gutierrez, Guillem Rigaill
 Maintainer: Julien Chiquet <julien.chiquet@inra.fr>
-Description: Fused-ANOVA is a penalized method that solves the one-way ANOVA problem by collapsing the coefficients of K conditions.
-    It reconstructs a balanced tree structure between the condition with a homotopy algorithm in O(K log(K)).
+Description: Fast implementations (in O(n log(n))) of two univariate hierarchical clustering methods (1 dimensional Ward hierarchical 
+    clustering and l1 clusterpath). Resulting hierarchies are exported as hclust object.
 SystemRequirements: C++11
 License: GPL (>=2)
 Imports:
     methods,
     parallel,
-    Rmergetrees,
+    mergeTrees,
     Rcpp
 Suggests:
-    testthat
+    testthat,
+    knitr
 LinkingTo: Rcpp
 RoxygenNote: 6.1.1
+Encoding: UTF-8
+VignetteBuilder: knitr
 Collate: 
     'RcppExports.R'
     'aves.R'
-    'fusedanova-package.R'
-    'fusedanova_multivariate.R'
-    'fusedanova_univariate.R'
-    'fusedanova_S3methods.R'
+    'univarclust-package.R'
+    'clusterpath_l1.R'
     'utils.R'
-    'ward1d_univariate.R'
+    'ward_1d.R'

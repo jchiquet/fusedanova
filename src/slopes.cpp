@@ -11,8 +11,7 @@ using namespace std;
 NumericVector get_slopes(NumericVector &xm    ,
                          IntegerVector &ngroup,
                          double gamma         ,
-                         std::string weights  ,
-                         NumericMatrix &W     ) {
+                         std::string weights) {
   
   int n = xm.length()  ; 
   int N = sum(ngroup)  ; // number of individuals in all groups
@@ -99,20 +98,6 @@ NumericVector get_slopes(NumericVector &xm    ,
       }
       slopes[i]-=sum2;
     }
-    
-  } else if (weights == "personal"){
-    for (int i=0; i<n; i++){
-      sum1 = 0;
-      sign = -1 ;
-      for (int j=0; j<n; j++){
-        if (i==j){
-          sign= 1 ;
-        }else{
-          sum1 += sign * W(i,j);
-        }
-      } 
-      slopes.push_back(sum1/ngroup[i]);
-    } 	
   }
   
   return(wrap(slopes));

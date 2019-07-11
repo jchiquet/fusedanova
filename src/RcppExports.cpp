@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // export_order
 Rcpp::IntegerVector export_order(const IntegerMatrix& merge, const IntegerVector& size);
-RcppExport SEXP _fusedanova_export_order(SEXP mergeSEXP, SEXP sizeSEXP) {
+RcppExport SEXP _univarclust_export_order(SEXP mergeSEXP, SEXP sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,7 +19,7 @@ END_RCPP
 }
 // export_merge
 Rcpp::IntegerMatrix export_merge(const IntegerVector& parent1, const IntegerVector& parent2);
-RcppExport SEXP _fusedanova_export_merge(SEXP parent1SEXP, SEXP parent2SEXP) {
+RcppExport SEXP _univarclust_export_merge(SEXP parent1SEXP, SEXP parent2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -31,7 +31,7 @@ END_RCPP
 }
 // fusedanova_cpp
 DataFrame fusedanova_cpp(NumericVector beta0, NumericVector slope0, IntegerVector size0);
-RcppExport SEXP _fusedanova_fusedanova_cpp(SEXP beta0SEXP, SEXP slope0SEXP, SEXP size0SEXP) {
+RcppExport SEXP _univarclust_fusedanova_cpp(SEXP beta0SEXP, SEXP slope0SEXP, SEXP size0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -43,8 +43,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // get_slopes
-NumericVector get_slopes(NumericVector& xm, IntegerVector& ngroup, double gamma, std::string weights, NumericMatrix& W);
-RcppExport SEXP _fusedanova_get_slopes(SEXP xmSEXP, SEXP ngroupSEXP, SEXP gammaSEXP, SEXP weightsSEXP, SEXP WSEXP) {
+NumericVector get_slopes(NumericVector& xm, IntegerVector& ngroup, double gamma, std::string weights);
+RcppExport SEXP _univarclust_get_slopes(SEXP xmSEXP, SEXP ngroupSEXP, SEXP gammaSEXP, SEXP weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -52,14 +52,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector& >::type ngroup(ngroupSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< std::string >::type weights(weightsSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix& >::type W(WSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_slopes(xm, ngroup, gamma, weights, W));
+    rcpp_result_gen = Rcpp::wrap(get_slopes(xm, ngroup, gamma, weights));
     return rcpp_result_gen;
 END_RCPP
 }
 // ward1d_cpp
 DataFrame ward1d_cpp(NumericVector sum_0, NumericVector sum2_0, IntegerVector size0);
-RcppExport SEXP _fusedanova_ward1d_cpp(SEXP sum_0SEXP, SEXP sum2_0SEXP, SEXP size0SEXP) {
+RcppExport SEXP _univarclust_ward1d_cpp(SEXP sum_0SEXP, SEXP sum2_0SEXP, SEXP size0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -72,15 +71,15 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_fusedanova_export_order", (DL_FUNC) &_fusedanova_export_order, 2},
-    {"_fusedanova_export_merge", (DL_FUNC) &_fusedanova_export_merge, 2},
-    {"_fusedanova_fusedanova_cpp", (DL_FUNC) &_fusedanova_fusedanova_cpp, 3},
-    {"_fusedanova_get_slopes", (DL_FUNC) &_fusedanova_get_slopes, 5},
-    {"_fusedanova_ward1d_cpp", (DL_FUNC) &_fusedanova_ward1d_cpp, 3},
+    {"_univarclust_export_order", (DL_FUNC) &_univarclust_export_order, 2},
+    {"_univarclust_export_merge", (DL_FUNC) &_univarclust_export_merge, 2},
+    {"_univarclust_fusedanova_cpp", (DL_FUNC) &_univarclust_fusedanova_cpp, 3},
+    {"_univarclust_get_slopes", (DL_FUNC) &_univarclust_get_slopes, 4},
+    {"_univarclust_ward1d_cpp", (DL_FUNC) &_univarclust_ward1d_cpp, 3},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_fusedanova(DllInfo *dll) {
+RcppExport void R_init_univarclust(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

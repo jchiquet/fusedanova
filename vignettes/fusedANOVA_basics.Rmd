@@ -1,5 +1,5 @@
 ---
-title: "Introduction to the fused-ANOVA package"
+title: "Use univarclust to fit fused-ANOVA"
 author: "Julien Chiquet, Pierre Gutierrez, Guillem Rigaill"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -60,7 +60,7 @@ This **aves** data set gives the birth weight of for 40 bird families classified
 The corresponding data frame contains 184 rows with three columns: "weight" (the weight in grammes), "family" (a factor with 40 levels) and "order" (a factor with 15 levels):
 
 ```{r aves-data}
-library(fusedanova)
+library(univarclust)
 data(aves)
 knitr::kable(head(aves))
 ```
@@ -69,44 +69,44 @@ By default, $\gamma = 0$  and so all weights reduce to $n_k n_\ell$ and are just
 
 
 ```{r aves-default}
-fa.default <- fusedanova(aves$weight, aves$order, standardize = TRUE)
+default <- clusterpath_l1(aves$weight, aves$order)
 ```
 
 If not specify, the weighting scheme is Laplace. As can be seen, using a positive $\gamma$ tends to fused quicker the groups which were closer at the start-up of the path.
 
 ```{r aves-laplace}
-fa.laplace <- fusedanova(aves$weight, aves$order, gamma = .25, standardize = TRUE)
+laplace <- clusterpath_l1(aves$weight, aves$order, gamma = .01)
 ```
 
 Gaussian weights provide a nice interpretation but do not guarante low complexity.
 
 ```{r aves-gaussian}
-fa.gaussian <- fusedanova(aves$weight, aves$order, "gaussian", gamma=sqrt(.1), standardize = TRUE)
+gaussian <- clusterpath_l1(aves$weight, aves$order, "gaussian", gamma = 1e-4)
 ```
 
 The adaptive-weigths correspond to the Cas-ANOVA approach by Bondel and Reich, that do not enjoy a low computational complexity but the same kind of statistical guarantees as the lapace weights.
 
 ```{r aves-ada}
-fa.adaptive <- fusedanova(aves$weight, aves$order, "adaptive", gamma=exp(.1), standardize=TRUE)
+adaptive <- clusterpath_l1(aves$weight, aves$order, "adaptive", gamma = exp(.1))
 ```
 
 ### Plotting dendrogram
 
-An output of fusedanova has class "hclust" so you can rely on the available methods for this kind of object:
+An output of clusterpath_l1 has class "hclust" so you can rely on the available methods for this kind of object:
 
 ```{r dendrogram}
-plot(as.dendrogram(fa.default), type = "triangle", main = "default weights")
-plot(as.dendrogram(fa.laplace), type = "triangle", main = "Laplace weights")
-plot(as.dendrogram(fa.gaussian), type = "triangle", main = "Gaussian weights")
-plot(as.dendrogram(fa.adaptive), type = "triangle", main = "adaptive weights")
+plot(as.dendrogram(default), type = "triangle", main = "default weights")
+plot(as.dendrogram(laplace), type = "triangle", main = "Laplace weights")
+plot(as.dendrogram(gaussian), type = "triangle", main = "Gaussian weights")
+plot(as.dendrogram(adaptive), type = "triangle", main = "adaptive weights")
 
-cutree(fa.adaptive, c(2, 6))
+cutree(adaptive, c(2, 6))
 ```
 
 Package **ape** provides more method for plotting dendrogram in a phylogenetic perpective :
 
 ```{r phylo}
 library(ape)
-fa <- fusedanova(aves$weight, gamma=0.25, standardize=TRUE)
-plot(as.phylo(fa), type="fan", tip.color=as.numeric(aves$family))
+fa <- clusterpath_l1(aves$weight, gamma = 1e-4)
+plot(as.phylo(fa), type="fan", tip.color = as.numeric(aves$family))
 ```

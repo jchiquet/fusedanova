@@ -1,9 +1,13 @@
 NEWS/Changelog
 
+0.4-0 (2019-07-01)
+    + fast 1 dimensional Ward clustering
+    + removing multivariate versions (handle in mergeTrees)
+    
 0.3-0 (2018-07-01)
-    + multivariate version using Rmergetrees
-    + qucik and easy export to hclust format
-    + many minor simplication
+    + multivariate version using mergeTrees
+    + quick and easy export to hclust format
+    + many minor simplications
 
 0.2-0 (2018-01-01)
     + complete rewriting in OO style
