@@ -1,5 +1,5 @@
 rm(list=ls())
-library(fusedanova)
+library(univarclust)
 
 set.seed(111)
 n1 <- 100; n2 <- 200; n3 <- 150; n <- n1 + n2 + n3
@@ -16,7 +16,7 @@ o <- sample(1:(n1 + n2 + n3))
 group <- group[o]
 trait <- trait[o]
 
-fa <- fusedanova(trait, gamma = 0)
+fa <- univarclust::clusterpath_l1(trait, gamma = 0)
 
 plot(fa, main = "fused-ANOVA tree")
 

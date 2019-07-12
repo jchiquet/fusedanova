@@ -86,7 +86,6 @@ clusterpath_l1 <- function(x, group,
   # data compression and ordering
   group_means <- rowsum(x, group) / nk
   ordering    <- order(group_means)
-  group_names <- levels(group)[ordering]
   group_means <- group_means[ordering]
   group_sizes <- nk[ordering]
 
@@ -98,8 +97,10 @@ clusterpath_l1 <- function(x, group,
   res <- structure(
     list(fusionTree = fusion,
          weighting  = weighting,
-         labels     = group_names, 
+         method     = "l1-clusterpath",
+         labels     = as.character(levels(group)),
+         ordering   = ordering,
          call       = match.call()), class = "univarclust")
-  if (hclust) res <- as_hclust(res, "l1-clusterpath")
+  if (hclust) res <- as_hclust(res)
   res
 }
