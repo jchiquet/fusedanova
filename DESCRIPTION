@@ -17,9 +17,9 @@ Imports:
 Suggests:
     testthat (>= 2.1.0),
     knitr,
-    ape
+    ape,
+    aricode
 LinkingTo: Rcpp
-RoxygenNote: 6.1.1 
 Encoding: UTF-8
 VignetteBuilder: knitr
 Collate: 
@@ -29,3 +29,4 @@ Collate:
     'clusterpath_l1.R'
     'utils.R'
     'ward_1d.R'
+RoxygenNote: 6.1.1

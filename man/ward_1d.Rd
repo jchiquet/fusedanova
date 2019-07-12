@@ -4,13 +4,10 @@
 \alias{ward_1d}
 \title{Fit a fast version of the 1 dimensional Ward clustering algorithm}
 \usage{
-ward_1d(x, group, hclust = TRUE)
+ward_1d(x, hclust = TRUE)
 }
 \arguments{
 \item{x}{a numeric vector of observation for n individuals.}
-
-\item{group}{an optional vector or factor giving the initial grouping. If missing, 
-each individual are set in a single group.}
 
 \item{hclust}{boolean: should the result be outputed as an hclust object? Default is \code{TRUE}.}
 }
@@ -23,7 +20,7 @@ This version is dedicated to clustering of univariate data (i.e., vector).
 }
 \examples{
 data(aves)
-ward1d <- ward_1d(aves$weight, aves$family)
+ward1d <- ward_1d(aves$weight)
 plot(ward1d)
 
 }
