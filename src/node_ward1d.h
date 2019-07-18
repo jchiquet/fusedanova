@@ -2,6 +2,7 @@
 #define _node_ward1d_H
 
 #include <cmath>
+#include <algorithm>
 
 class node_ward1d {
 public:
