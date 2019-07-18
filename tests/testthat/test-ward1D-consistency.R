@@ -53,10 +53,4 @@ test_that("Consistency with hclust with repeated data", {
   reference   <- hclust(dist(x), method = "ward.D2")
 
   expect_equal(ward_univar$height, reference$height)  
-  
-  cl_univar    <- as.list(as.data.frame(cutree(ward_univar, 1:9)))
-  cl_reference <- as.list(as.data.frame(cutree(reference, 1:9)))
-  res <- mapply(aricode::ARI, cl_univar, cl_reference)
-  
-  expect_true(all(res == 1))
 })
